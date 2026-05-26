@@ -232,6 +232,11 @@ export default function PricingPage() {
             </ul>
 
             <button
+              onClick={() => {
+                if (plan.button !== "Current Plan") {
+                  window.location.href = "mailto:nurilhuda155@gmail.com?subject=Upgrade%20Inquiry%20for%20CharacterGenAI";
+                }
+              }}
               style={{
                 width: "100%",
                 padding: "16px",
@@ -239,7 +244,7 @@ export default function PricingPage() {
                 borderRadius: "12px",
                 fontSize: "14px",
                 fontWeight: 700,
-                cursor: "pointer",
+                cursor: plan.button === "Current Plan" ? "default" : "pointer",
                 transition: "all 0.2s ease",
                 border: plan.highlight ? "none" : "1px solid rgba(255,255,255,0.1)",
                 background: plan.highlight
@@ -247,6 +252,7 @@ export default function PricingPage() {
                   : "rgba(255,255,255,0.05)",
                 color: "white",
                 boxShadow: plan.highlight ? "0 8px 24px rgba(134,4,148,0.3)" : "none",
+                opacity: plan.button === "Current Plan" ? 0.5 : 1,
               }}
             >
               {plan.button}
