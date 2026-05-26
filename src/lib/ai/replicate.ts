@@ -8,7 +8,7 @@ const TRIPO_MODEL_VERSION = process.env.TRIPO_MODEL_VERSION || "v3.0-20250812";
 const TRIPO_POLL_INTERVAL_MS = Number(process.env.TRIPO_POLL_INTERVAL_MS || 5000);
 const TRIPO_MAX_POLLS = Number(process.env.TRIPO_MAX_POLLS || 60);
 
-const HF_API_BASE = "https://api-inference.huggingface.co/models";
+const HF_API_BASE = "https://router.huggingface.co/hf-inference/models";
 const HF_2D_MODEL = process.env.HF_2D_MODEL || "black-forest-labs/FLUX.1-schnell";
 const HF_MAX_RETRIES = 3;
 const HF_RETRY_DELAY_MS = 10000;
