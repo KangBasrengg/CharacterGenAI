@@ -25,9 +25,9 @@ const footerLinks = {
 };
 
 const socialLinks = [
-  { icon: FaGithub, href: "#", label: "GitHub" },
-  { icon: FaDiscord, href: "#", label: "Discord" },
-  { icon: FaYoutube, href: "#", label: "YouTube" },
+  { icon: FaGithub, href: "https://github.com/KangBasrengg", label: "GitHub" },
+  { icon: FaDiscord, href: "https://discord.com/users/cinn10_", label: "Discord" },
+  { icon: FaYoutube, href: "https://www.youtube.com/@cinsss1936", label: "YouTube" },
 ];
 
 export function Footer() {
@@ -65,6 +65,8 @@ export function Footer() {
                   key={i}
                   href={social.href}
                   aria-label={social.label}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   style={{
                     width: "38px",
                     height: "38px",
