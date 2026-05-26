@@ -4,6 +4,8 @@ import { buildPrompt, NEGATIVE_PROMPT } from "@/lib/ai/prompts";
 import { generateCharacterImage } from "@/lib/ai/replicate";
 import type { CharacterStyle, Gender, PoseMood } from "@/lib/ai/prompts";
 
+export const maxDuration = 60; // Extend Vercel timeout to 60 seconds
+
 const BUCKET_NAME = "generations";
 
 export async function POST(request: Request) {
@@ -168,17 +170,21 @@ export async function POST(request: Request) {
         .update({ credits: profile.credits })
         .eq("id", user.id);
 
+      let errorMessage = aiError instanceof Error ? aiError.message : "Unknown error";
+      if (aiError instanceof Error && (aiError as any).cause) {
+        errorMessage += ` (Cause: ${(aiError as any).cause.message || (aiError as any).cause})`;
+      }
+
       await supabase
         .from("generations")
         .update({
           status: "failed",
-          error_message:
-            aiError instanceof Error ? aiError.message : "Unknown error",
+          error_message: errorMessage,
         })
         .eq("id", generation.id);
 
       return NextResponse.json(
-        { error: aiError instanceof Error ? aiError.message : "AI generation failed. Credit has been refunded." },
+        { error: errorMessage },
         { status: 500 }
       );
     }
