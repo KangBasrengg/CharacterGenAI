@@ -10,6 +10,7 @@ import toast from "react-hot-toast";
 type Style = "stylized-realism" | "anime" | "low-poly" | "cyberpunk";
 type Gender = "male" | "female" | "androgynous";
 type PoseMood = "heroic-epic" | "combat-aggressive" | "relaxed-neutral";
+type Ai3DProvider = "tripo" | "huggingface";
 
 export default function GeneratePage() {
   const { user, updateCredits } = useUserStore();
@@ -20,9 +21,14 @@ export default function GeneratePage() {
   const [style, setStyle] = useState<Style>("stylized-realism");
   const [gender, setGender] = useState<Gender>("male");
   const [pose, setPose] = useState<PoseMood>("heroic-epic");
+  const [ai3DProvider, setAi3DProvider] = useState<Ai3DProvider>("tripo");
   const [result, setResult] = useState<{ id: string; imageUrl: string } | null>(null);
   const [conversionStatus, setConversionStatus] = useState<string | null>(null);
-  const [modelUrl, setModelUrl] = useState<string | null>(null);
+  const [modelResult, setModelResult] = useState<{
+    id: string;
+    url: string;
+    format: string;
+  } | null>(null);
 
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,7 +37,7 @@ export default function GeneratePage() {
 
     setIsGenerating(true);
     setResult(null);
-    setModelUrl(null);
+    setModelResult(null);
     setConversionStatus(null);
 
     try {
@@ -61,13 +67,21 @@ export default function GeneratePage() {
       const res = await fetch("/api/convert3d", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ imageUrl: result.imageUrl, generationId: result.id }),
+        body: JSON.stringify({
+          imageUrl: result.imageUrl,
+          generationId: result.id,
+          provider: ai3DProvider,
+        }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "3D conversion failed");
       updateCredits(data.creditsRemaining);
-      setModelUrl(data.modelUrl);
-      setConversionStatus("3D model ready!");
+      setModelResult({
+        id: data.id,
+        url: data.modelUrl,
+        format: data.format || "glb",
+      });
+      setConversionStatus(`${ai3DProvider === "tripo" ? "Tripo" : "Hugging Face Space"} model ready!`);
       toast.success("3D model is ready for download!");
     } catch (error) {
       setConversionStatus("Conversion failed. Credits refunded.");
@@ -77,24 +91,44 @@ export default function GeneratePage() {
     }
   };
 
-  const handleDownloadPNG = () => {
-    if (!result) return;
-    const link = document.createElement("a");
-    link.href = `/api/download/${result.id}?format=png`;
-    link.download = `chargen-${result.id}.png`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const downloadAsset = async (
+    assetId: string,
+    format: string,
+    filename: string
+  ) => {
+    try {
+      const res = await fetch(`/api/download/${assetId}?format=${format}`);
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.error || `Failed to download ${format.toUpperCase()}`);
+      }
+
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Download failed.");
+    }
   };
 
-  const handleDownload3D = (format: string) => {
+  const handleDownloadPNG = () => {
     if (!result) return;
-    const link = document.createElement("a");
-    link.href = `/api/download/${result.id}?format=${format}`;
-    link.download = `chargen-${result.id}.${format}`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    void downloadAsset(result.id, "png", `chargen-${result.id}.png`);
+  };
+
+  const handleDownload3D = () => {
+    if (!modelResult) return;
+    void downloadAsset(
+      modelResult.id,
+      modelResult.format,
+      `chargen-${modelResult.id}.${modelResult.format}`
+    );
   };
 
   const selectStyle: React.CSSProperties = {
@@ -130,15 +164,35 @@ export default function GeneratePage() {
     opacity: disabled ? 0.5 : 1,
   });
 
+  const providerButtonStyle = (provider: Ai3DProvider): React.CSSProperties => {
+    const active = ai3DProvider === provider;
+    return {
+      minHeight: "78px",
+      padding: "14px",
+      borderRadius: "14px",
+      border: active
+        ? "1px solid rgba(196,181,253,0.45)"
+        : "1px solid rgba(255,255,255,0.1)",
+      background: active
+        ? "linear-gradient(135deg, rgba(134,4,148,0.35), rgba(120,115,208,0.22))"
+        : "rgba(255,255,255,0.05)",
+      color: "white",
+      cursor: "pointer",
+      textAlign: "left",
+      transition: "all 0.2s ease",
+      boxShadow: active ? "0 12px 30px rgba(134,4,148,0.2)" : "none",
+    };
+  };
+
   return (
-    <div style={{ paddingTop: "120px", paddingBottom: "80px", paddingLeft: "5%", paddingRight: "5%" }} className="min-h-screen">
+    <div style={{ paddingTop: "128px", paddingBottom: "80px", paddingLeft: "5%", paddingRight: "5%" }} className="min-h-screen">
       {/* Header */}
       <div style={{ marginBottom: "32px" }}>
         <h1 style={{ fontSize: "28px", fontWeight: 800, color: "white", marginBottom: "8px" }}>AI Generator</h1>
         <p style={{ fontSize: "15px", color: "rgba(255,255,255,0.5)" }}>Create your custom 2D concept art and convert it to 3D.</p>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "380px 1fr", gap: "24px", alignItems: "start" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "minmax(320px, 380px) minmax(0, 1fr)", gap: "24px", alignItems: "start" }}>
         {/* Left Panel */}
         <form
           onSubmit={handleGenerate}
@@ -209,6 +263,25 @@ export default function GeneratePage() {
               <option value="combat-aggressive" style={{ background: "#1a0a2e", color: "white" }}>Combat Ready (Aggressive)</option>
               <option value="relaxed-neutral" style={{ background: "#1a0a2e", color: "white" }}>Relaxed (Neutral)</option>
             </select>
+          </div>
+
+          {/* 3D Provider */}
+          <div style={{ marginBottom: "24px" }}>
+            <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "rgba(255,255,255,0.5)", marginBottom: "10px" }}>3D AI Model</label>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+              <button type="button" onClick={() => setAi3DProvider("tripo")} style={providerButtonStyle("tripo")}>
+                <span style={{ display: "block", fontSize: "13px", fontWeight: 800, marginBottom: "6px" }}>Tripo</span>
+                <span style={{ display: "block", fontSize: "11px", lineHeight: 1.45, color: "rgba(255,255,255,0.5)" }}>
+                  API resmi, hasil lebih stabil.
+                </span>
+              </button>
+              <button type="button" onClick={() => setAi3DProvider("huggingface")} style={providerButtonStyle("huggingface")}>
+                <span style={{ display: "block", fontSize: "13px", fontWeight: 800, marginBottom: "6px" }}>Hugging Face</span>
+                <span style={{ display: "block", fontSize: "11px", lineHeight: 1.45, color: "rgba(255,255,255,0.5)" }}>
+                  Space gratis, antrian bisa lama.
+                </span>
+              </button>
+            </div>
           </div>
 
           {/* Credits */}
@@ -299,8 +372,8 @@ export default function GeneratePage() {
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px", position: "relative", zIndex: 10 }}>
             <h3 style={{ fontSize: "16px", fontWeight: 700, color: "white" }}>Preview</h3>
             <div style={{ display: "flex", gap: "10px" }}>
-              {modelUrl ? (
-                <button onClick={() => handleDownload3D("obj")} style={btnStyle(false)}>
+              {modelResult ? (
+                <button onClick={handleDownload3D} style={btnStyle(false)}>
                   <Download style={{ width: "14px", height: "14px" }} /> Download 3D
                 </button>
               ) : (
@@ -308,7 +381,7 @@ export default function GeneratePage() {
                   {is3DConverting ? (
                     <><Loader2 style={{ width: "14px", height: "14px", animation: "spin 1s linear infinite" }} /> Converting...</>
                   ) : (
-                    <><Box style={{ width: "14px", height: "14px" }} /> Convert to 3D (5 Credits)</>
+                    <><Box style={{ width: "14px", height: "14px" }} /> Convert with {ai3DProvider === "tripo" ? "Tripo" : "HF"} (5 Credits)</>
                   )}
                 </button>
               )}

@@ -13,11 +13,33 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { data: profile } = await supabase
+    let { data: profile } = await supabase
       .from("profiles")
       .select("*")
       .eq("id", user.id)
       .single();
+
+    if (!profile) {
+      const { data: created } = await supabase
+        .from("profiles")
+        .upsert(
+          {
+            id: user.id,
+            name:
+              user.user_metadata?.full_name ||
+              user.user_metadata?.name ||
+              "User",
+            avatar_url: user.user_metadata?.avatar_url || null,
+            plan: "free",
+            credits: 10,
+          },
+          { onConflict: "id" }
+        )
+        .select("*")
+        .single();
+
+      profile = created;
+    }
 
     return NextResponse.json({
       id: user.id,

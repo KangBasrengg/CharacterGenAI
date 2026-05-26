@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useUserStore, useAuthStore } from "@/store";
-import { Download, Box, Search, Loader2, ArrowRight, Wand2, Image as ImageIcon, Eye } from "lucide-react";
+import { Download, Box, Search, Loader2, ArrowRight, Wand2, Eye, Sparkles, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 
@@ -48,10 +48,7 @@ export default function LibraryPage() {
 
   useEffect(() => {
     if (authLoading) return;
-    if (!user) {
-      setLoading(false);
-      return;
-    }
+    if (!user) return;
     const timer = setTimeout(fetchAssets, 300);
     return () => clearTimeout(timer);
   }, [fetchAssets, user, authLoading]);
@@ -65,13 +62,25 @@ export default function LibraryPage() {
     document.body.removeChild(link);
   };
 
+  const filterBtnStyle = (active: boolean): React.CSSProperties => ({
+    padding: "6px 14px",
+    borderRadius: "8px",
+    fontSize: "12px",
+    fontWeight: 500,
+    cursor: "pointer",
+    transition: "all 0.2s ease",
+    background: active ? "rgba(139,92,246,0.2)" : "transparent",
+    color: active ? "#c4b5fd" : "rgba(255,255,255,0.5)",
+    border: active ? "1px solid rgba(139,92,246,0.3)" : "1px solid transparent",
+  });
+
   // Auth still loading
   if (authLoading) {
     return (
-      <div className="pt-32 pb-20 flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <Loader2 className="w-8 h-8 text-purple-400 animate-spin mx-auto mb-4" />
-          <p className="text-white/40 text-sm">Loading...</p>
+      <div style={{ paddingTop: "160px", paddingBottom: "80px", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ textAlign: "center" }}>
+          <Loader2 style={{ width: "32px", height: "32px", color: "#c084fc", animation: "spin 1s linear infinite", margin: "0 auto 16px" }} />
+          <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "14px" }}>Loading...</p>
         </div>
       </div>
     );
@@ -80,25 +89,27 @@ export default function LibraryPage() {
   // Not logged in
   if (!user) {
     return (
-      <div className="pt-32 pb-20 min-h-screen flex items-center justify-center px-4">
+      <div style={{ paddingTop: "160px", paddingBottom: "80px", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", paddingLeft: "16px", paddingRight: "16px" }}>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center max-w-md"
+          style={{ textAlign: "center", maxWidth: "448px" }}
         >
-          <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-purple-600/20 to-violet-500/20 flex items-center justify-center mx-auto mb-6 border border-purple-500/20">
-            <ImageIcon className="w-10 h-10 text-purple-400" />
+          <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "6px 16px", borderRadius: "9999px", fontSize: "14px", color: "#c4b5fd", fontWeight: 500, marginBottom: "24px", background: "rgba(139,92,246,0.1)", border: "1px solid rgba(139,92,246,0.2)", backdropFilter: "blur(12px)" }}>
+            <Sparkles style={{ width: "16px", height: "16px" }} /> Asset Library
           </div>
-          <h1 className="text-3xl font-bold text-white mb-3">Asset Library</h1>
-          <p className="text-white/50 mb-8 leading-relaxed">
+          <h1 style={{ fontSize: "clamp(2rem, 5vw, 3rem)", fontWeight: 900, color: "white", marginBottom: "16px", letterSpacing: "-0.02em", lineHeight: 1.1 }}>
+            Your <span className="gradient-text">Assets</span>
+          </h1>
+          <p style={{ fontSize: "18px", color: "rgba(255,255,255,0.5)", marginBottom: "32px", lineHeight: 1.7 }}>
             Sign in to view and manage your generated characters and 3D models.
           </p>
           <button
             onClick={openLogin}
-            className="px-8 py-3.5 rounded-xl btn-gradient text-white font-semibold text-sm inline-flex items-center gap-2"
-            style={{ background: "linear-gradient(135deg, #860494 0%, #7873d0 100%)" }}
+            className="btn-gradient"
+            style={{ padding: "14px 32px", borderRadius: "12px", color: "white", fontWeight: 700, fontSize: "14px", display: "inline-flex", alignItems: "center", gap: "8px", cursor: "pointer", boxShadow: "0 8px 30px rgba(134,4,148,0.25)" }}
           >
-            Sign In to Continue <ArrowRight className="w-4 h-4" />
+            Sign In to Continue <ArrowRight style={{ width: "16px", height: "16px" }} />
           </button>
         </motion.div>
       </div>
@@ -106,263 +117,442 @@ export default function LibraryPage() {
   }
 
   return (
-    <div style={{ paddingTop: "120px", paddingBottom: "80px", paddingLeft: "5%", paddingRight: "5%" }}>
-      {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10"
-      >
-        <div>
-          <h1 className="text-3xl font-bold text-white mb-2">
-            My Asset Library
-          </h1>
-          <p className="text-white/50">
-            Manage and download your generated characters.{" "}
-            <span className="text-purple-400 font-medium">{total} asset{total !== 1 ? "s" : ""}</span>
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3 w-full md:w-auto">
-          {/* Search */}
-          <div className="relative flex-1 md:w-64">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
-            <input
-              placeholder="Search assets..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl text-sm text-white placeholder:text-white/30 outline-none transition-all"
-              style={{
-                background: "rgba(10,0,20,0.6)",
-                border: "1px solid rgba(255,255,255,0.1)",
-              }}
-              onFocus={(e) => { e.target.style.borderColor = "rgba(139,92,246,0.4)"; }}
-              onBlur={(e) => { e.target.style.borderColor = "rgba(255,255,255,0.1)"; }}
-            />
-          </div>
-          {/* Type Filter */}
-          <div className="flex gap-1 p-1 rounded-xl" style={{ background: "rgba(10,0,20,0.6)", border: "1px solid rgba(255,255,255,0.1)" }}>
-            {["all", "2d", "3d"].map((t) => (
-              <button
-                key={t}
-                onClick={() => setTypeFilter(t)}
-                className="px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all"
-                style={{
-                  background: typeFilter === t ? "rgba(139,92,246,0.2)" : "transparent",
-                  color: typeFilter === t ? "#c4b5fd" : "rgba(255,255,255,0.5)",
-                  border: typeFilter === t ? "1px solid rgba(139,92,246,0.3)" : "1px solid transparent",
-                }}
-              >
-                {t === "all" ? "All" : t.toUpperCase()}
-              </button>
-            ))}
-          </div>
-        </div>
-      </motion.div>
-
-      {/* Content */}
-      {loading ? (
-        <div className="flex items-center justify-center py-20">
-          <div className="text-center">
-            <Loader2 className="w-8 h-8 text-purple-400 animate-spin mx-auto mb-4" />
-            <p className="text-white/40 text-sm">Loading assets...</p>
-          </div>
-        </div>
-      ) : assets.length === 0 ? (
+    <div style={{ paddingTop: "128px", paddingBottom: "80px", paddingLeft: "5%", paddingRight: "5%", minHeight: "100vh" }}>
+      <div style={{ maxWidth: "1440px", margin: "0 auto" }}>
+        {/* Header */}
         <motion.div
-          initial={{ opacity: 0, y: 15 }}
+          initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center py-24"
+          style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-end", gap: "28px", marginBottom: "40px" }}
         >
-          <div className="w-20 h-20 rounded-2xl bg-white/5 flex items-center justify-center mx-auto mb-6 border border-white/10">
-            <Box className="w-10 h-10 text-white/20" />
+          <div>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "6px 16px", borderRadius: "9999px", fontSize: "14px", color: "#c4b5fd", fontWeight: 500, marginBottom: "16px", background: "rgba(10,0,20,0.6)", border: "1px solid rgba(139,92,246,0.3)", backdropFilter: "blur(20px)" }}>
+              <Sparkles style={{ width: "16px", height: "16px" }} /> Collection
+            </div>
+            <h1 style={{ fontSize: "clamp(2rem, 5vw, 3rem)", fontWeight: 900, color: "white", marginBottom: "12px", letterSpacing: "-0.02em", lineHeight: 1.1 }}>
+              My <span className="gradient-text">Asset Library</span>
+            </h1>
+            <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "15px" }}>
+              Manage and download your generated characters.{" "}
+              <span style={{ color: "#c084fc", fontWeight: 500 }}>{total} asset{total !== 1 ? "s" : ""}</span>
+            </p>
           </div>
-          <p className="text-white/40 text-lg font-medium mb-2">
-            {search ? "No matching assets" : "No assets yet"}
-          </p>
-          <p className="text-white/25 text-sm max-w-sm mx-auto mb-6">
-            {search
-              ? "Try a different search term or adjust your filters."
-              : "Start generating characters to build your personal asset library!"}
-          </p>
-          {!search && (
-            <Link
-              href="/generate"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl btn-gradient text-white font-semibold text-sm"
-              style={{ background: "linear-gradient(135deg, #860494 0%, #7873d0 100%)" }}
-            >
-              <Wand2 className="w-4 h-4" /> Generate Your First Character
-            </Link>
-          )}
+
+          {/* Search & Filter Bar */}
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              alignItems: "center",
+              gap: "12px",
+              padding: "12px",
+              borderRadius: "16px",
+              background: "rgba(10,0,20,0.58)",
+              border: "1px solid rgba(255,255,255,0.1)",
+              backdropFilter: "blur(20px)",
+            }}
+          >
+            {/* Search */}
+            <div style={{ position: "relative", minWidth: "200px", flex: "1 1 auto" }}>
+              <Search style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", width: "16px", height: "16px", color: "rgba(255,255,255,0.3)" }} />
+              <input
+                placeholder="Search assets..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                style={{
+                  width: "100%",
+                  paddingLeft: "40px",
+                  paddingRight: "16px",
+                  paddingTop: "12px",
+                  paddingBottom: "12px",
+                  borderRadius: "12px",
+                  fontSize: "14px",
+                  color: "white",
+                  background: "rgba(10,0,20,0.6)",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                  outline: "none",
+                  transition: "border-color 0.2s ease",
+                  fontFamily: "inherit",
+                }}
+                onFocus={(e) => { e.target.style.borderColor = "rgba(139,92,246,0.4)"; }}
+                onBlur={(e) => { e.target.style.borderColor = "rgba(255,255,255,0.1)"; }}
+              />
+            </div>
+            {/* Type Filter */}
+            <div style={{ display: "flex", gap: "4px", padding: "4px", borderRadius: "12px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
+              {["all", "2d", "3d"].map((t) => (
+                <button
+                  key={t}
+                  onClick={() => setTypeFilter(t)}
+                  style={filterBtnStyle(typeFilter === t)}
+                >
+                  {t === "all" ? "All" : t.toUpperCase()}
+                </button>
+              ))}
+            </div>
+          </div>
         </motion.div>
-      ) : (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
-        >
-          {assets.map((asset, i) => (
+
+        {/* Content */}
+        <div style={{ minHeight: "560px" }}>
+          {loading ? (
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", paddingTop: "96px", paddingBottom: "96px" }}>
+              <div style={{ textAlign: "center" }}>
+                <Loader2 style={{ width: "32px", height: "32px", color: "#c084fc", animation: "spin 1s linear infinite", margin: "0 auto 16px" }} />
+                <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "14px" }}>Loading assets...</p>
+              </div>
+            </div>
+          ) : assets.length === 0 ? (
             <motion.div
-              key={asset.id}
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05 }}
-              className="group rounded-2xl glass border border-white/10 overflow-hidden card-hover flex flex-col"
+              style={{ textAlign: "center", paddingTop: "112px", paddingBottom: "112px" }}
             >
-              {/* Image */}
-              <div className="relative aspect-square overflow-hidden">
-                {asset.image_url ? (
-                  <img
-                    src={asset.image_url}
-                    alt={asset.prompt}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-[#0a0a0a] flex items-center justify-center">
-                    <Box className="w-12 h-12 text-white/20" />
-                  </div>
-                )}
-                {/* Badges */}
-                <div className="absolute top-3 right-3 flex gap-2">
-                  <span className="px-2.5 py-1 rounded-md bg-black/60 backdrop-blur-md border border-white/10 text-xs font-medium text-white">
-                    {asset.type.toUpperCase()}
-                  </span>
-                  {asset.model_format && (
-                    <span className="px-2.5 py-1 rounded-md bg-purple-900/60 backdrop-blur-md border border-purple-500/30 text-xs font-medium text-purple-200">
-                      {asset.model_format.toUpperCase()}
-                    </span>
-                  )}
-                </div>
-                {/* Hover overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center p-4">
-                  <div className="flex gap-2 w-full">
-                    {asset.image_url && (
-                      <button
-                        onClick={() => setPreviewAsset(asset)}
-                        className="flex-1 py-2.5 rounded-lg bg-white/10 border border-white/20 text-white text-xs font-semibold flex items-center justify-center gap-1.5 hover:bg-white/20 transition-colors"
-                      >
-                        <Eye className="w-3.5 h-3.5" /> Preview
-                      </button>
-                    )}
-                    {asset.image_url && (
-                      <button
-                        onClick={() => handleDownload(asset, "png")}
-                        className="flex-1 py-2.5 rounded-lg text-white text-xs font-semibold flex items-center justify-center gap-1.5 hover:opacity-90 transition-opacity"
-                        style={{ background: "linear-gradient(135deg, #860494 0%, #7873d0 100%)" }}
-                      >
-                        <Download className="w-3.5 h-3.5" /> PNG
-                      </button>
-                    )}
-                    {asset.model_url && (
-                      <button
-                        onClick={() =>
-                          handleDownload(asset, asset.model_format || "glb")
-                        }
-                        className="flex-1 py-2.5 rounded-lg bg-white/10 border border-white/20 text-white text-xs font-semibold flex items-center justify-center gap-1.5 hover:bg-white/20 transition-colors"
-                      >
-                        <Download className="w-3.5 h-3.5" /> 3D
-                      </button>
-                    )}
-                  </div>
-                </div>
+              <div style={{
+                width: "80px",
+                height: "80px",
+                borderRadius: "16px",
+                background: "rgba(255,255,255,0.05)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                margin: "0 auto 24px",
+                border: "1px solid rgba(255,255,255,0.1)",
+              }}>
+                <Box style={{ width: "40px", height: "40px", color: "rgba(255,255,255,0.2)" }} />
               </div>
-              {/* Info */}
-              <div className="p-4 border-t border-white/5 bg-[#0a0a0a]/50">
-                <h3 className="text-white font-medium text-sm truncate mb-1">
-                  {asset.prompt}
-                </h3>
-                <div className="flex items-center justify-between">
-                  <p className="text-white/30 text-xs">
-                    {new Date(asset.created_at).toLocaleDateString("en-US", {
-                      month: "short",
-                      day: "numeric",
-                      year: "numeric",
-                    })}
-                  </p>
-                  {asset.style && (
-                    <span className="text-purple-400/60 text-xs capitalize">
-                      {asset.style.replace("-", " ")}
-                    </span>
-                  )}
-                </div>
-              </div>
+              <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "18px", fontWeight: 500, marginBottom: "8px" }}>
+                {search ? "No matching assets" : "No assets yet"}
+              </p>
+              <p style={{ color: "rgba(255,255,255,0.25)", fontSize: "14px", maxWidth: "384px", margin: "0 auto 24px" }}>
+                {search
+                  ? "Try a different search term or adjust your filters."
+                  : "Start generating characters to build your personal asset library!"}
+              </p>
+              {!search && (
+                <Link
+                  href="/generate"
+                  className="btn-gradient"
+                  style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "12px 24px", borderRadius: "12px", color: "white", fontWeight: 600, fontSize: "14px", textDecoration: "none" }}
+                >
+                  <Wand2 style={{ width: "16px", height: "16px" }} /> Generate Your First Character
+                </Link>
+              )}
             </motion.div>
-          ))}
-        </motion.div>
-      )}
-
-      {/* Preview Modal */}
-      <AnimatePresence>
-        {previewAsset && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4"
-            style={{ background: "rgba(0,0,0,0.85)", backdropFilter: "blur(12px)" }}
-            onClick={() => setPreviewAsset(null)}
-          >
+          ) : (
             <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="max-w-3xl w-full max-h-[85vh] flex flex-col glass rounded-2xl border border-white/10 overflow-hidden"
-              onClick={(e) => e.stopPropagation()}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "24px", paddingBottom: "40px" }}
             >
-              {/* Preview Image */}
-              <div className="flex-1 overflow-hidden flex items-center justify-center bg-black/50 min-h-0">
-                {previewAsset.image_url && (
-                  <img
-                    src={previewAsset.image_url}
-                    alt={previewAsset.prompt}
-                    className="max-w-full max-h-[60vh] object-contain"
-                  />
-                )}
-              </div>
-              {/* Info */}
-              <div className="p-6 border-t border-white/10">
-                <p className="text-white font-medium mb-3">{previewAsset.prompt}</p>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="px-2.5 py-1 rounded-md bg-purple-500/10 border border-purple-500/20 text-xs font-medium text-purple-300">
-                      {previewAsset.type.toUpperCase()}
-                    </span>
-                    {previewAsset.style && (
-                      <span className="px-2.5 py-1 rounded-md bg-white/5 border border-white/10 text-xs text-white/50 capitalize">
-                        {previewAsset.style.replace("-", " ")}
+              {assets.map((asset, i) => (
+                <motion.div
+                  key={asset.id}
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.05 }}
+                  className="card-hover"
+                  style={{
+                    borderRadius: "24px",
+                    overflow: "hidden",
+                    display: "flex",
+                    flexDirection: "column",
+                    background: "rgba(10,0,20,0.6)",
+                    backdropFilter: "blur(20px)",
+                    border: "1px solid rgba(255,255,255,0.1)",
+                    boxShadow: "0 25px 50px rgba(30,0,50,0.15)",
+                  }}
+                >
+                  {/* Image */}
+                  <div style={{ position: "relative", aspectRatio: "1", overflow: "hidden" }}>
+                    {asset.image_url ? (
+                      <img
+                        src={asset.image_url}
+                        alt={asset.prompt}
+                        style={{ width: "100%", height: "100%", objectFit: "cover", transition: "transform 0.5s ease" }}
+                        onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.transform = "scale(1.1)"; }}
+                        onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.transform = "scale(1)"; }}
+                      />
+                    ) : (
+                      <div style={{ width: "100%", height: "100%", background: "#0a0a0a", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <Box style={{ width: "48px", height: "48px", color: "rgba(255,255,255,0.2)" }} />
+                      </div>
+                    )}
+                    {/* Badges */}
+                    <div style={{ position: "absolute", top: "12px", right: "12px", display: "flex", gap: "8px" }}>
+                      <span style={{ padding: "4px 10px", borderRadius: "6px", background: "rgba(0,0,0,0.6)", backdropFilter: "blur(12px)", border: "1px solid rgba(255,255,255,0.1)", fontSize: "12px", fontWeight: 500, color: "white" }}>
+                        {asset.type.toUpperCase()}
                       </span>
-                    )}
-                    <span className="text-white/30 text-xs">
-                      {new Date(previewAsset.created_at).toLocaleDateString("en-US", {
-                        month: "short", day: "numeric", year: "numeric",
-                      })}
-                    </span>
+                      {asset.model_format && (
+                        <span style={{ padding: "4px 10px", borderRadius: "6px", background: "rgba(88,28,135,0.6)", backdropFilter: "blur(12px)", border: "1px solid rgba(168,85,247,0.3)", fontSize: "12px", fontWeight: 500, color: "#e9d5ff" }}>
+                          {asset.model_format.toUpperCase()}
+                        </span>
+                      )}
+                    </div>
+                    {/* Hover overlay */}
+                    <div
+                      className="asset-overlay"
+                      style={{
+                        position: "absolute",
+                        inset: 0,
+                        background: "linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.2) 50%, transparent 100%)",
+                        opacity: 0,
+                        transition: "opacity 0.3s ease",
+                        display: "flex",
+                        alignItems: "flex-end",
+                        justifyContent: "center",
+                        padding: "16px",
+                      }}
+                      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.opacity = "1"; }}
+                      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.opacity = "0"; }}
+                    >
+                      <div style={{ display: "flex", gap: "8px", width: "100%" }}>
+                        {asset.image_url && (
+                          <button
+                            onClick={() => setPreviewAsset(asset)}
+                            style={{
+                              flex: 1,
+                              padding: "10px",
+                              borderRadius: "8px",
+                              background: "rgba(255,255,255,0.1)",
+                              border: "1px solid rgba(255,255,255,0.2)",
+                              color: "white",
+                              fontSize: "12px",
+                              fontWeight: 600,
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              gap: "6px",
+                              cursor: "pointer",
+                              transition: "background 0.2s ease",
+                            }}
+                            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.2)"; }}
+                            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.1)"; }}
+                          >
+                            <Eye style={{ width: "14px", height: "14px" }} /> Preview
+                          </button>
+                        )}
+                        {asset.image_url && (
+                          <button
+                            onClick={() => handleDownload(asset, "png")}
+                            style={{
+                              flex: 1,
+                              padding: "10px",
+                              borderRadius: "8px",
+                              background: "linear-gradient(135deg, #860494 0%, #7873d0 100%)",
+                              border: "none",
+                              color: "white",
+                              fontSize: "12px",
+                              fontWeight: 600,
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              gap: "6px",
+                              cursor: "pointer",
+                              transition: "opacity 0.2s ease",
+                            }}
+                          >
+                            <Download style={{ width: "14px", height: "14px" }} /> PNG
+                          </button>
+                        )}
+                        {asset.model_url && (
+                          <button
+                            onClick={() => handleDownload(asset, asset.model_format || "glb")}
+                            style={{
+                              flex: 1,
+                              padding: "10px",
+                              borderRadius: "8px",
+                              background: "rgba(255,255,255,0.1)",
+                              border: "1px solid rgba(255,255,255,0.2)",
+                              color: "white",
+                              fontSize: "12px",
+                              fontWeight: 600,
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              gap: "6px",
+                              cursor: "pointer",
+                              transition: "background 0.2s ease",
+                            }}
+                            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.2)"; }}
+                            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.1)"; }}
+                          >
+                            <Download style={{ width: "14px", height: "14px" }} /> 3D
+                          </button>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex gap-2">
-                    {previewAsset.image_url && (
-                      <button
-                        onClick={() => handleDownload(previewAsset, "png")}
-                        className="px-4 py-2 rounded-lg text-white text-xs font-semibold flex items-center gap-1.5"
-                        style={{ background: "linear-gradient(135deg, #860494 0%, #7873d0 100%)" }}
-                      >
-                        <Download className="w-3.5 h-3.5" /> PNG
-                      </button>
-                    )}
-                    {previewAsset.model_url && (
-                      <button
-                        onClick={() => handleDownload(previewAsset, previewAsset.model_format || "obj")}
-                        className="px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white text-xs font-semibold flex items-center gap-1.5 hover:bg-white/20 transition-colors"
-                      >
-                        <Download className="w-3.5 h-3.5" /> 3D Model
-                      </button>
-                    )}
+                  {/* Info */}
+                  <div style={{ padding: "16px", borderTop: "1px solid rgba(255,255,255,0.05)", background: "rgba(10,10,10,0.55)" }}>
+                    <h3 style={{ color: "white", fontWeight: 600, fontSize: "14px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginBottom: "8px" }}>
+                      {asset.prompt}
+                    </h3>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                      <p style={{ color: "rgba(255,255,255,0.3)", fontSize: "12px" }}>
+                        {new Date(asset.created_at).toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                        })}
+                      </p>
+                      {asset.style && (
+                        <span style={{ color: "rgba(192,132,252,0.6)", fontSize: "12px", textTransform: "capitalize" }}>
+                          {asset.style.replace("-", " ")}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </motion.div>
+          )}
+        </div>
+
+        {/* Preview Modal */}
+        <AnimatePresence>
+          {previewAsset && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setPreviewAsset(null)}
+              style={{
+                position: "fixed",
+                inset: 0,
+                zIndex: 50,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: "16px",
+                background: "rgba(0,0,0,0.85)",
+                backdropFilter: "blur(12px)",
+              }}
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                onClick={(e) => e.stopPropagation()}
+                style={{
+                  maxWidth: "768px",
+                  width: "100%",
+                  maxHeight: "85vh",
+                  display: "flex",
+                  flexDirection: "column",
+                  borderRadius: "20px",
+                  overflow: "hidden",
+                  background: "rgba(10,0,20,0.9)",
+                  backdropFilter: "blur(30px)",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                }}
+              >
+                {/* Close button */}
+                <button
+                  onClick={() => setPreviewAsset(null)}
+                  style={{
+                    position: "absolute",
+                    top: "16px",
+                    right: "16px",
+                    width: "36px",
+                    height: "36px",
+                    borderRadius: "10px",
+                    background: "rgba(255,255,255,0.1)",
+                    border: "1px solid rgba(255,255,255,0.15)",
+                    color: "white",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    zIndex: 10,
+                    transition: "background 0.2s ease",
+                  }}
+                  onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.2)"; }}
+                  onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.1)"; }}
+                >
+                  <X style={{ width: "18px", height: "18px" }} />
+                </button>
+                {/* Preview Image */}
+                <div style={{ flex: 1, overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.5)", minHeight: 0 }}>
+                  {previewAsset.image_url && (
+                    <img
+                      src={previewAsset.image_url}
+                      alt={previewAsset.prompt}
+                      style={{ maxWidth: "100%", maxHeight: "60vh", objectFit: "contain" }}
+                    />
+                  )}
+                </div>
+                {/* Info */}
+                <div style={{ padding: "24px", borderTop: "1px solid rgba(255,255,255,0.1)" }}>
+                  <p style={{ color: "white", fontWeight: 500, marginBottom: "12px" }}>{previewAsset.prompt}</p>
+                  <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: "12px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                      <span style={{ padding: "4px 10px", borderRadius: "6px", background: "rgba(168,85,247,0.1)", border: "1px solid rgba(168,85,247,0.2)", fontSize: "12px", fontWeight: 500, color: "#c4b5fd" }}>
+                        {previewAsset.type.toUpperCase()}
+                      </span>
+                      {previewAsset.style && (
+                        <span style={{ padding: "4px 10px", borderRadius: "6px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", fontSize: "12px", color: "rgba(255,255,255,0.5)", textTransform: "capitalize" }}>
+                          {previewAsset.style.replace("-", " ")}
+                        </span>
+                      )}
+                      <span style={{ color: "rgba(255,255,255,0.3)", fontSize: "12px" }}>
+                        {new Date(previewAsset.created_at).toLocaleDateString("en-US", {
+                          month: "short", day: "numeric", year: "numeric",
+                        })}
+                      </span>
+                    </div>
+                    <div style={{ display: "flex", gap: "8px" }}>
+                      {previewAsset.image_url && (
+                        <button
+                          onClick={() => handleDownload(previewAsset, "png")}
+                          style={{
+                            padding: "8px 16px",
+                            borderRadius: "8px",
+                            background: "linear-gradient(135deg, #860494 0%, #7873d0 100%)",
+                            border: "none",
+                            color: "white",
+                            fontSize: "12px",
+                            fontWeight: 600,
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "6px",
+                            cursor: "pointer",
+                          }}
+                        >
+                          <Download style={{ width: "14px", height: "14px" }} /> PNG
+                        </button>
+                      )}
+                      {previewAsset.model_url && (
+                        <button
+                          onClick={() => handleDownload(previewAsset, previewAsset.model_format || "obj")}
+                          style={{
+                            padding: "8px 16px",
+                            borderRadius: "8px",
+                            background: "rgba(255,255,255,0.1)",
+                            border: "1px solid rgba(255,255,255,0.2)",
+                            color: "white",
+                            fontSize: "12px",
+                            fontWeight: 600,
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "6px",
+                            cursor: "pointer",
+                            transition: "background 0.2s ease",
+                          }}
+                          onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.2)"; }}
+                          onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.1)"; }}
+                        >
+                          <Download style={{ width: "14px", height: "14px" }} /> 3D Model
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
+              </motion.div>
             </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 }

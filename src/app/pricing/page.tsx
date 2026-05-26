@@ -1,8 +1,8 @@
 "use client";
 
-import { Check, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Check, X, Sparkles } from "lucide-react";
 import { useState } from "react";
+import { motion } from "framer-motion";
 
 const plans = [
   {
@@ -41,78 +41,217 @@ export default function PricingPage() {
   const [annual, setAnnual] = useState(true);
 
   return (
-    <div style={{ paddingTop: "120px", paddingBottom: "80px", paddingLeft: "5%", paddingRight: "5%" }}>
-      <div className="text-center max-w-3xl mx-auto mb-16">
-        <h1 className="text-4xl md:text-5xl font-bold text-white mb-6">Simple, Transparent Pricing</h1>
-        <p className="text-lg text-white/50 mb-10">Choose the perfect plan for your creative needs. Upgrade, downgrade, or cancel anytime.</p>
-        
+    <div style={{ paddingTop: "160px", paddingBottom: "96px", paddingLeft: "5%", paddingRight: "5%" }}>
+      {/* Header Section */}
+      <div style={{ textAlign: "center", maxWidth: "720px", margin: "0 auto 64px auto" }}>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "8px",
+            padding: "6px 16px",
+            borderRadius: "9999px",
+            fontSize: "14px",
+            color: "#c4b5fd",
+            fontWeight: 500,
+            marginBottom: "24px",
+            background: "rgba(139,92,246,0.1)",
+            border: "1px solid rgba(139,92,246,0.2)",
+            backdropFilter: "blur(12px)",
+          }}
+        >
+          <Sparkles style={{ width: "16px", height: "16px" }} /> Pricing Plans
+        </motion.div>
+
+        <motion.h1
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          style={{
+            fontSize: "clamp(2rem, 5vw, 3.5rem)",
+            fontWeight: 900,
+            color: "white",
+            marginBottom: "24px",
+            letterSpacing: "-0.02em",
+            lineHeight: 1.1,
+          }}
+        >
+          Simple, <span className="gradient-text">Transparent Pricing</span>
+        </motion.h1>
+
+        <motion.p
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          style={{
+            fontSize: "18px",
+            color: "rgba(255,255,255,0.5)",
+            marginBottom: "40px",
+            lineHeight: 1.7,
+            maxWidth: "600px",
+            margin: "0 auto 40px auto",
+          }}
+        >
+          Choose the perfect plan for your creative needs. Upgrade, downgrade, or cancel anytime.
+        </motion.p>
+
         {/* Toggle */}
-        <div className="inline-flex items-center p-1 rounded-xl bg-[#0a0a0a] border border-white/10 glass">
-          <button 
-            className={`px-6 py-2 rounded-lg text-sm font-medium transition-all ${!annual ? "bg-white/10 text-white" : "text-white/50 hover:text-white"}`}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            padding: "6px",
+            borderRadius: "12px",
+            background: "rgba(10,10,10,0.8)",
+            border: "1px solid rgba(255,255,255,0.1)",
+            backdropFilter: "blur(12px)",
+          }}
+        >
+          <button
             onClick={() => setAnnual(false)}
+            style={{
+              padding: "10px 32px",
+              borderRadius: "8px",
+              fontSize: "14px",
+              fontWeight: 700,
+              border: "none",
+              cursor: "pointer",
+              transition: "all 0.2s ease",
+              background: !annual ? "rgba(255,255,255,0.1)" : "transparent",
+              color: !annual ? "white" : "rgba(255,255,255,0.4)",
+            }}
           >
             Monthly
           </button>
-          <button 
-            className={`px-6 py-2 rounded-lg text-sm font-medium transition-all ${annual ? "bg-white/10 text-white" : "text-white/50 hover:text-white"}`}
+          <button
             onClick={() => setAnnual(true)}
+            style={{
+              padding: "10px 32px",
+              borderRadius: "8px",
+              fontSize: "14px",
+              fontWeight: 700,
+              border: "none",
+              cursor: "pointer",
+              transition: "all 0.2s ease",
+              background: annual ? "rgba(255,255,255,0.1)" : "transparent",
+              color: annual ? "white" : "rgba(255,255,255,0.4)",
+            }}
           >
-            Annually <span className="text-purple-400 ml-1">-20%</span>
+            Annually <span style={{ color: "#a78bfa", marginLeft: "6px" }}>-20%</span>
           </button>
-        </div>
+        </motion.div>
       </div>
 
-      <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-        {plans.map((plan) => (
-          <div 
-            key={plan.name} 
-            className={`relative rounded-3xl p-8 glass card-hover ${
-              plan.highlight ? "border-purple-500/50 glow-purple shadow-xl" : "border-white/10"
-            }`}
+      {/* Pricing Cards */}
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(3, 1fr)",
+        gap: "32px",
+        maxWidth: "1100px",
+        margin: "0 auto",
+      }}>
+        {plans.map((plan, i) => (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 + (i * 0.1) }}
+            key={plan.name}
+            style={{
+              position: "relative",
+              borderRadius: "24px",
+              padding: "32px",
+              display: "flex",
+              flexDirection: "column",
+              background: "rgba(10,0,20,0.6)",
+              backdropFilter: "blur(20px)",
+              border: plan.highlight ? "1px solid rgba(139,92,246,0.4)" : "1px solid rgba(255,255,255,0.1)",
+              boxShadow: plan.highlight ? "0 0 40px rgba(139,92,246,0.15), 0 25px 50px -12px rgba(0,0,0,0.5)" : "none",
+              transform: plan.highlight ? "scale(1.05)" : "scale(1)",
+              zIndex: plan.highlight ? 10 : 1,
+              transition: "all 0.3s ease",
+            }}
           >
             {plan.highlight && (
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 px-4 py-1 rounded-full bg-gradient-to-r from-purple-600 to-violet-600 text-xs font-bold text-white shadow-lg">
+              <div style={{
+                position: "absolute",
+                top: 0,
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+                padding: "4px 16px",
+                borderRadius: "9999px",
+                background: "linear-gradient(135deg, #7c3aed, #8b5cf6)",
+                fontSize: "11px",
+                fontWeight: 700,
+                color: "white",
+                boxShadow: "0 4px 12px rgba(139,92,246,0.4)",
+                letterSpacing: "0.05em",
+              }}>
                 MOST POPULAR
               </div>
             )}
-            
-            <h3 className="text-2xl font-bold text-white mb-2">{plan.name}</h3>
-            <p className="text-sm text-white/50 mb-6 h-10">{plan.desc}</p>
-            
-            <div className="mb-6">
-              <span className="text-4xl font-black text-white">${annual && plan.price !== "0" ? Math.floor(parseInt(plan.price) * 0.8) : plan.price}</span>
-              <span className="text-white/50">/month</span>
-            </div>
-            
-            <p className="text-sm font-semibold text-purple-300 mb-8 pb-8 border-b border-white/10">{plan.credits}</p>
 
-            <ul className="space-y-4 mb-8 flex-1">
+            <h3 style={{ fontSize: "24px", fontWeight: 700, color: "white", marginBottom: "8px" }}>{plan.name}</h3>
+            <p style={{ fontSize: "14px", color: "rgba(255,255,255,0.5)", marginBottom: "24px", minHeight: "40px" }}>{plan.desc}</p>
+
+            <div style={{ marginBottom: "24px" }}>
+              <span style={{ fontSize: "40px", fontWeight: 900, color: "white" }}>
+                ${annual && plan.price !== "0" ? Math.floor(parseInt(plan.price) * 0.8) : plan.price}
+              </span>
+              <span style={{ color: "rgba(255,255,255,0.5)" }}>/month</span>
+            </div>
+
+            <p style={{
+              fontSize: "14px",
+              fontWeight: 600,
+              color: "#c4b5fd",
+              marginBottom: "32px",
+              paddingBottom: "32px",
+              borderBottom: "1px solid rgba(255,255,255,0.1)",
+            }}>
+              {plan.credits}
+            </p>
+
+            <ul style={{ listStyle: "none", padding: 0, margin: 0, flex: 1 }}>
               {plan.features.map((feature) => (
-                <li key={feature} className="flex items-start gap-3">
-                  <Check className="w-5 h-5 text-purple-400 shrink-0" />
-                  <span className="text-sm text-white/80">{feature}</span>
+                <li key={feature} style={{ display: "flex", alignItems: "flex-start", gap: "12px", marginBottom: "16px" }}>
+                  <Check style={{ width: "20px", height: "20px", color: "#a78bfa", flexShrink: 0, marginTop: "1px" }} />
+                  <span style={{ fontSize: "14px", color: "rgba(255,255,255,0.8)" }}>{feature}</span>
                 </li>
               ))}
               {plan.notIncluded.map((feature) => (
-                <li key={feature} className="flex items-start gap-3 opacity-50">
-                  <X className="w-5 h-5 text-white/30 shrink-0" />
-                  <span className="text-sm text-white/50 line-through">{feature}</span>
+                <li key={feature} style={{ display: "flex", alignItems: "flex-start", gap: "12px", marginBottom: "16px", opacity: 0.5 }}>
+                  <X style={{ width: "20px", height: "20px", color: "rgba(255,255,255,0.3)", flexShrink: 0, marginTop: "1px" }} />
+                  <span style={{ fontSize: "14px", color: "rgba(255,255,255,0.5)", textDecoration: "line-through" }}>{feature}</span>
                 </li>
               ))}
             </ul>
 
-            <Button 
-              variant={plan.highlight ? "default" : "outline"} 
-              className={`w-full py-6 mt-auto ${
-                plan.highlight 
-                  ? "btn-gradient text-white" 
-                  : "bg-white/5 border-white/10 text-white hover:bg-white/10"
-              }`}
+            <button
+              style={{
+                width: "100%",
+                padding: "16px",
+                marginTop: "32px",
+                borderRadius: "12px",
+                fontSize: "14px",
+                fontWeight: 700,
+                cursor: "pointer",
+                transition: "all 0.2s ease",
+                border: plan.highlight ? "none" : "1px solid rgba(255,255,255,0.1)",
+                background: plan.highlight
+                  ? "linear-gradient(135deg, #860494 0%, #7873d0 100%)"
+                  : "rgba(255,255,255,0.05)",
+                color: "white",
+                boxShadow: plan.highlight ? "0 8px 24px rgba(134,4,148,0.3)" : "none",
+              }}
             >
               {plan.button}
-            </Button>
-          </div>
+            </button>
+          </motion.div>
         ))}
       </div>
     </div>

@@ -1,7 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
-import { convertImageTo3D } from "@/lib/ai/replicate";
+import { convertImageTo3D, type Ai3DProvider } from "@/lib/ai/replicate";
 import { uploadModelToStorage } from "@/lib/supabase/storage";
+
+const AI_3D_PROVIDERS = new Set<Ai3DProvider>(["tripo", "huggingface"]);
 
 export async function POST(request: Request) {
   try {
@@ -34,7 +36,10 @@ export async function POST(request: Request) {
     }
 
     // 3. Parse request
-    const { imageUrl, generationId } = await request.json();
+    const { imageUrl, generationId, provider: requestedProvider } = await request.json();
+    const provider: Ai3DProvider = AI_3D_PROVIDERS.has(requestedProvider)
+      ? requestedProvider
+      : "tripo";
     if (!imageUrl) {
       return NextResponse.json(
         { error: "Image URL is required" },
@@ -49,12 +54,12 @@ export async function POST(request: Request) {
       .eq("id", user.id);
 
     // 5. Insert 3D generation record
-    const { data: generation } = await supabase
+    const { data: generation, error: insertError } = await supabase
       .from("generations")
       .insert({
         user_id: user.id,
         type: "3d",
-        prompt: `3D conversion of generation ${generationId || "unknown"}`,
+        prompt: `3D conversion via ${provider === "tripo" ? "Tripo" : "Hugging Face Space"} of generation ${generationId || "unknown"}`,
         status: "processing",
         image_url: imageUrl,
         credits_used: 5,
@@ -62,42 +67,51 @@ export async function POST(request: Request) {
       .select()
       .single();
 
+    if (insertError || !generation) {
+      await supabase
+        .from("profiles")
+        .update({ credits: profile.credits })
+        .eq("id", user.id);
+
+      return NextResponse.json(
+        { error: "Failed to create 3D generation record" },
+        { status: 500 }
+      );
+    }
+
     try {
       // 6. Call TripoSR on Replicate (synchronous — returns when done)
-      const tempModelUrl = await convertImageTo3D(imageUrl);
+      const tempModelUrl = await convertImageTo3D(imageUrl, provider);
 
       // 7. Upload model to Supabase Storage
       let persistentModelUrl = tempModelUrl;
-      const modelFormat = "obj";
+      const modelFormat = "glb";
       try {
-        if (generation) {
-          persistentModelUrl = await uploadModelToStorage(
-            tempModelUrl,
-            user.id,
-            generation.id,
-            modelFormat
-          );
-        }
+        persistentModelUrl = await uploadModelToStorage(
+          tempModelUrl,
+          user.id,
+          generation.id,
+          modelFormat
+        );
       } catch (storageError) {
         console.warn("Model storage upload failed, using temporary URL:", storageError);
       }
 
       // 8. Update generation record
-      if (generation) {
-        await supabase
-          .from("generations")
-          .update({
-            status: "completed",
-            model_url: persistentModelUrl,
-            model_format: modelFormat,
-          })
-          .eq("id", generation.id);
-      }
+      await supabase
+        .from("generations")
+        .update({
+          status: "completed",
+          model_url: persistentModelUrl,
+          model_format: modelFormat,
+        })
+        .eq("id", generation.id);
 
       return NextResponse.json({
-        id: generation?.id,
+        id: generation.id,
         modelUrl: persistentModelUrl,
         format: modelFormat,
+        provider,
         creditsRemaining: profile.credits - 5,
       });
     } catch (aiError) {
@@ -107,18 +121,16 @@ export async function POST(request: Request) {
         .update({ credits: profile.credits })
         .eq("id", user.id);
 
-      if (generation) {
-        await supabase
-          .from("generations")
-          .update({
-            status: "failed",
-            error_message:
-              aiError instanceof Error
-                ? aiError.message
-                : "3D conversion failed",
-          })
-          .eq("id", generation.id);
-      }
+      await supabase
+        .from("generations")
+        .update({
+          status: "failed",
+          error_message:
+            aiError instanceof Error
+              ? aiError.message
+              : "3D conversion failed",
+        })
+        .eq("id", generation.id);
 
       return NextResponse.json(
         { error: "3D conversion failed. Credits refunded." },

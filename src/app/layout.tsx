@@ -53,6 +53,7 @@ export default function RootLayout({
               border: '1px solid rgba(134,4,148,0.4)',
               color: '#fff',
               backdropFilter: 'blur(20px)',
+              zIndex: 99999,
             },
           }}
         />

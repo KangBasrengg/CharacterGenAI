@@ -78,7 +78,8 @@ export async function uploadModelToStorage(
   const { error: uploadError } = await supabase.storage
     .from(BUCKET_NAME)
     .upload(filePath, buffer, {
-      contentType: "application/octet-stream",
+      contentType:
+        format === "glb" ? "model/gltf-binary" : "application/octet-stream",
       upsert: true,
     });
 

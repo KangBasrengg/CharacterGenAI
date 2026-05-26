@@ -39,10 +39,7 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (authLoading) return;
-    if (!user) {
-      setLoading(false);
-      return;
-    }
+    if (!user) return;
 
     const fetchProfile = async () => {
       try {
@@ -105,8 +102,8 @@ export default function ProfilePage() {
   // Auth loading
   if (authLoading) {
     return (
-      <div className="pt-32 pb-20 flex items-center justify-center min-h-screen">
-        <Loader2 className="w-8 h-8 text-purple-400 animate-spin" />
+      <div style={{ paddingTop: "160px", paddingBottom: "80px", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <Loader2 style={{ width: "32px", height: "32px", color: "#a78bfa", animation: "spin 1s linear infinite" }} />
       </div>
     );
   }
@@ -114,25 +111,24 @@ export default function ProfilePage() {
   // Not logged in
   if (!user) {
     return (
-      <div className="pt-32 pb-20 min-h-screen flex items-center justify-center px-4">
+      <div style={{ paddingTop: "160px", paddingBottom: "80px", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", paddingLeft: "20px", paddingRight: "20px" }}>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center max-w-md"
+          style={{ textAlign: "center", maxWidth: "400px" }}
         >
-          <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-purple-600/20 to-violet-500/20 flex items-center justify-center mx-auto mb-6 border border-purple-500/20">
-            <User className="w-10 h-10 text-purple-400" />
+          <div style={{ width: "80px", height: "80px", borderRadius: "24px", background: "linear-gradient(135deg, rgba(147,51,234,0.2) 0%, rgba(139,92,246,0.2) 100%)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 24px auto", border: "1px solid rgba(168,85,247,0.2)" }}>
+            <User style={{ width: "40px", height: "40px", color: "#c084fc" }} />
           </div>
-          <h1 className="text-3xl font-bold text-white mb-3">Your Profile</h1>
-          <p className="text-white/50 mb-8 leading-relaxed">
+          <h1 style={{ fontSize: "30px", fontWeight: 700, color: "white", marginBottom: "12px" }}>Your Profile</h1>
+          <p style={{ color: "rgba(255,255,255,0.5)", marginBottom: "32px", lineHeight: 1.6 }}>
             Sign in to view and manage your profile, credits, and subscription.
           </p>
           <button
             onClick={openLogin}
-            className="px-8 py-3.5 rounded-xl btn-gradient text-white font-semibold text-sm inline-flex items-center gap-2"
-            style={{ background: "linear-gradient(135deg, #860494 0%, #7873d0 100%)" }}
+            style={{ padding: "14px 32px", borderRadius: "12px", background: "linear-gradient(135deg, #860494 0%, #7873d0 100%)", color: "white", fontWeight: 600, fontSize: "14px", display: "inline-flex", alignItems: "center", gap: "8px", border: "none", cursor: "pointer" }}
           >
-            Sign In to Continue <ArrowRight className="w-4 h-4" />
+            Sign In to Continue <ArrowRight style={{ width: "16px", height: "16px" }} />
           </button>
         </motion.div>
       </div>
@@ -142,63 +138,58 @@ export default function ProfilePage() {
   // Loading
   if (loading) {
     return (
-      <div className="pt-32 pb-20 flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <Loader2 className="w-8 h-8 text-purple-400 animate-spin mx-auto mb-4" />
-          <p className="text-white/40 text-sm">Loading profile...</p>
+      <div style={{ paddingTop: "160px", paddingBottom: "80px", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ textAlign: "center" }}>
+          <Loader2 style={{ width: "32px", height: "32px", color: "#a78bfa", animation: "spin 1s linear infinite", margin: "0 auto 16px auto" }} />
+          <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "14px" }}>Loading profile...</p>
         </div>
       </div>
     );
   }
 
   const planColors = {
-    free: { bg: "from-gray-500/10 to-gray-600/5", border: "border-gray-500/20", text: "text-gray-300", badge: "bg-gray-500/10" },
-    pro: { bg: "from-purple-500/10 to-violet-500/5", border: "border-purple-500/20", text: "text-purple-300", badge: "bg-purple-500/10" },
-    studio: { bg: "from-amber-500/10 to-orange-500/5", border: "border-amber-500/20", text: "text-amber-300", badge: "bg-amber-500/10" },
+    free: { bg: "linear-gradient(to right, rgba(107,114,128,0.1), rgba(156,163,175,0.05))", border: "rgba(107,114,128,0.2)", text: "#d1d5db", badge: "rgba(107,114,128,0.1)" },
+    pro: { bg: "linear-gradient(to right, rgba(168,85,247,0.1), rgba(139,92,246,0.05))", border: "rgba(168,85,247,0.2)", text: "#d8b4fe", badge: "rgba(168,85,247,0.1)" },
+    studio: { bg: "linear-gradient(to right, rgba(245,158,11,0.1), rgba(249,115,22,0.05))", border: "rgba(245,158,11,0.2)", text: "#fcd34d", badge: "rgba(245,158,11,0.1)" },
   };
 
   const currentPlan = profile?.plan || user.plan;
   const planStyle = planColors[currentPlan];
 
   return (
-    <div style={{ paddingTop: "120px", paddingBottom: "80px", paddingLeft: "5%", paddingRight: "5%" }}>
-      <div className="max-w-4xl mx-auto">
+    <div style={{ paddingTop: "160px", paddingBottom: "80px", paddingLeft: "5%", paddingRight: "5%", minHeight: "100vh" }}>
+      <div style={{ maxWidth: "1000px", margin: "0 auto" }}>
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-10"
+          style={{ marginBottom: "40px" }}
         >
-          <h1 className="text-3xl font-bold text-white mb-2">My Profile</h1>
-          <p className="text-white/50">Manage your account settings and subscription.</p>
+          <h1 style={{ fontSize: "32px", fontWeight: 700, color: "white", marginBottom: "8px" }}>My Profile</h1>
+          <p style={{ color: "rgba(255,255,255,0.5)" }}>Manage your account settings and subscription.</p>
         </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "24px" }}>
           {/* Left Column — Profile Card */}
           <motion.div
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.05 }}
-            className="lg:col-span-1"
+            style={{ gridColumn: "span 1" }}
           >
-            <div className="glass border border-white/10 rounded-2xl p-8 text-center card-hover">
+            <div style={{ background: "rgba(10,0,20,0.6)", backdropFilter: "blur(20px)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "24px", padding: "32px", textAlign: "center" }}>
               {/* Avatar */}
-              <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-purple-600 to-violet-500 flex items-center justify-center mx-auto mb-5 glow-purple text-3xl font-bold text-white">
+              <div style={{ width: "96px", height: "96px", borderRadius: "24px", background: "linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px auto", boxShadow: "0 0 30px rgba(139,92,246,0.3)", fontSize: "36px", fontWeight: 700, color: "white" }}>
                 {(profile?.name || user.name).charAt(0).toUpperCase()}
               </div>
 
               {/* Name */}
               {editingName ? (
-                <div className="flex items-center gap-2 justify-center mb-2">
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", justifyContent: "center", marginBottom: "8px" }}>
                   <input
                     value={newName}
                     onChange={(e) => setNewName(e.target.value)}
-                    className="px-3 py-1.5 rounded-lg text-sm text-white text-center outline-none"
-                    style={{
-                      background: "rgba(255,255,255,0.05)",
-                      border: "1px solid rgba(139,92,246,0.4)",
-                      width: "160px",
-                    }}
+                    style={{ padding: "6px 12px", borderRadius: "8px", fontSize: "14px", color: "white", textAlign: "center", outline: "none", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(139,92,246,0.4)", width: "160px" }}
                     autoFocus
                     onKeyDown={(e) => {
                       if (e.key === "Enter") handleUpdateName();
@@ -208,41 +199,41 @@ export default function ProfilePage() {
                   <button
                     onClick={handleUpdateName}
                     disabled={saving}
-                    className="p-1.5 rounded-lg bg-green-500/20 text-green-400 hover:bg-green-500/30 transition-colors"
+                    style={{ padding: "6px", borderRadius: "8px", background: "rgba(34,197,94,0.2)", color: "#4ade80", border: "none", cursor: "pointer" }}
                   >
-                    {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                    {saving ? <Loader2 style={{ width: "16px", height: "16px", animation: "spin 1s linear infinite" }} /> : <Check style={{ width: "16px", height: "16px" }} />}
                   </button>
                   <button
                     onClick={() => { setEditingName(false); setNewName(profile?.name || user.name); }}
-                    className="p-1.5 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors"
+                    style={{ padding: "6px", borderRadius: "8px", background: "rgba(239,68,68,0.2)", color: "#f87171", border: "none", cursor: "pointer" }}
                   >
-                    <X className="w-4 h-4" />
+                    <X style={{ width: "16px", height: "16px" }} />
                   </button>
                 </div>
               ) : (
-                <div className="flex items-center justify-center gap-2 mb-2">
-                  <h2 className="text-xl font-bold text-white">{profile?.name || user.name}</h2>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", marginBottom: "8px" }}>
+                  <h2 style={{ fontSize: "20px", fontWeight: 700, color: "white", margin: 0 }}>{profile?.name || user.name}</h2>
                   <button
                     onClick={() => setEditingName(true)}
-                    className="p-1 rounded-md text-white/30 hover:text-white/60 transition-colors"
+                    style={{ padding: "4px", borderRadius: "6px", color: "rgba(255,255,255,0.3)", background: "transparent", border: "none", cursor: "pointer" }}
                   >
-                    <Edit3 className="w-3.5 h-3.5" />
+                    <Edit3 style={{ width: "14px", height: "14px" }} />
                   </button>
                 </div>
               )}
 
-              <p className="text-white/40 text-sm mb-5">{profile?.email || user.email}</p>
+              <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "14px", marginBottom: "20px", margin: "0 0 20px 0" }}>{profile?.email || user.email}</p>
 
               {/* Plan Badge */}
-              <div className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full ${planStyle.badge} ${planStyle.border} border ${planStyle.text} text-xs font-semibold uppercase tracking-wider mb-6`}>
-                <Shield className="w-3.5 h-3.5" />
+              <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", padding: "6px 16px", borderRadius: "9999px", background: planStyle.badge, border: `1px solid ${planStyle.border}`, color: planStyle.text, fontSize: "12px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "24px" }}>
+                <Shield style={{ width: "14px", height: "14px" }} />
                 {currentPlan} Plan
               </div>
 
               {/* Member Since */}
               {profile?.createdAt && (
-                <p className="text-white/25 text-xs flex items-center justify-center gap-1.5">
-                  <Calendar className="w-3 h-3" />
+                <p style={{ color: "rgba(255,255,255,0.25)", fontSize: "12px", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", margin: 0 }}>
+                  <Calendar style={{ width: "12px", height: "12px" }} />
                   Member since{" "}
                   {new Date(profile.createdAt).toLocaleDateString("en-US", {
                     month: "long",
@@ -254,7 +245,9 @@ export default function ProfilePage() {
               {/* Sign Out */}
               <button
                 onClick={handleSignOut}
-                className="w-full mt-6 px-4 py-2.5 rounded-xl border border-red-500/20 text-red-400 text-sm font-medium hover:bg-red-500/10 transition-colors"
+                style={{ width: "100%", marginTop: "24px", padding: "10px 16px", borderRadius: "12px", border: "1px solid rgba(239,68,68,0.2)", color: "#f87171", fontSize: "14px", fontWeight: 500, background: "transparent", cursor: "pointer", transition: "background 0.2s" }}
+                onMouseEnter={(e) => e.currentTarget.style.background = "rgba(239,68,68,0.1)"}
+                onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
               >
                 Sign Out
               </button>
@@ -262,41 +255,41 @@ export default function ProfilePage() {
           </motion.div>
 
           {/* Right Column — Details */}
-          <div className="lg:col-span-2 space-y-6">
+          <div style={{ gridColumn: "span 2", display: "flex", flexDirection: "column", gap: "24px" }}>
             {/* Quick Stats */}
             <motion.div
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="grid grid-cols-3 gap-4"
+              style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px" }}
             >
               {[
                 {
                   label: "Credits",
                   value: (profile?.credits ?? user.credits).toString(),
                   icon: Zap,
-                  color: "text-yellow-400",
+                  color: "#facc15",
                 },
                 {
                   label: "2D Generated",
                   value: (stats?.total2D ?? 0).toString(),
                   icon: Sparkles,
-                  color: "text-purple-400",
+                  color: "#c084fc",
                 },
                 {
                   label: "3D Converted",
                   value: (stats?.total3D ?? 0).toString(),
                   icon: TrendingUp,
-                  color: "text-blue-400",
+                  color: "#60a5fa",
                 },
               ].map((s, i) => (
                 <div
                   key={i}
-                  className="glass border border-white/10 rounded-xl p-5 text-center"
+                  style={{ background: "rgba(10,0,20,0.6)", backdropFilter: "blur(20px)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "16px", padding: "20px", textAlign: "center" }}
                 >
-                  <s.icon className={`w-5 h-5 mx-auto mb-2 ${s.color}`} />
-                  <p className="text-2xl font-bold text-white">{s.value}</p>
-                  <p className="text-white/40 text-xs mt-1">{s.label}</p>
+                  <s.icon style={{ width: "20px", height: "20px", margin: "0 auto 8px auto", color: s.color }} />
+                  <p style={{ fontSize: "24px", fontWeight: 700, color: "white", margin: "0 0 4px 0" }}>{s.value}</p>
+                  <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "12px", margin: 0 }}>{s.label}</p>
                 </div>
               ))}
             </motion.div>
@@ -306,25 +299,25 @@ export default function ProfilePage() {
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.15 }}
-              className="glass border border-white/10 rounded-2xl overflow-hidden"
+              style={{ background: "rgba(10,0,20,0.6)", backdropFilter: "blur(20px)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "24px", overflow: "hidden" }}
             >
-              <div className="px-6 py-4 border-b border-white/10 bg-white/[0.02]">
-                <h3 className="text-sm font-semibold text-white">Account Details</h3>
+              <div style={{ padding: "16px 24px", borderBottom: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.02)" }}>
+                <h3 style={{ fontSize: "14px", fontWeight: 600, color: "white", margin: 0 }}>Account Details</h3>
               </div>
-              <div className="divide-y divide-white/5">
+              <div style={{ display: "flex", flexDirection: "column" }}>
                 {[
                   { icon: User, label: "Display Name", value: profile?.name || user.name },
                   { icon: Mail, label: "Email Address", value: profile?.email || user.email },
                   { icon: CreditCard, label: "Subscription Plan", value: `${currentPlan.charAt(0).toUpperCase() + currentPlan.slice(1)} Plan` },
                   { icon: Zap, label: "Available Credits", value: `${profile?.credits ?? user.credits} credits` },
                 ].map((item, i) => (
-                  <div key={i} className="flex items-center px-6 py-4 gap-4">
-                    <div className="w-9 h-9 rounded-lg bg-white/5 flex items-center justify-center border border-white/10 flex-shrink-0">
-                      <item.icon className="w-4 h-4 text-white/40" />
+                  <div key={i} style={{ display: "flex", alignItems: "center", padding: "16px 24px", gap: "16px", borderBottom: i < 3 ? "1px solid rgba(255,255,255,0.05)" : "none" }}>
+                    <div style={{ width: "36px", height: "36px", borderRadius: "8px", background: "rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid rgba(255,255,255,0.1)", flexShrink: 0 }}>
+                      <item.icon style={{ width: "16px", height: "16px", color: "rgba(255,255,255,0.4)" }} />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs text-white/40 mb-0.5">{item.label}</p>
-                      <p className="text-sm text-white font-medium truncate">{item.value}</p>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ fontSize: "12px", color: "rgba(255,255,255,0.4)", margin: "0 0 2px 0" }}>{item.label}</p>
+                      <p style={{ fontSize: "14px", color: "white", fontWeight: 500, margin: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{item.value}</p>
                     </div>
                   </div>
                 ))}
@@ -337,27 +330,42 @@ export default function ProfilePage() {
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
-                className="rounded-2xl overflow-hidden relative"
                 style={{
+                  borderRadius: "24px",
                   background: "linear-gradient(135deg, rgba(134,4,148,0.15) 0%, rgba(120,115,208,0.1) 100%)",
                   border: "1px solid rgba(139,92,246,0.25)",
+                  padding: "24px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: "16px",
+                  flexWrap: "wrap"
                 }}
               >
-                <div className="px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-                  <div>
-                    <h3 className="text-white font-bold mb-1">Upgrade to Pro</h3>
-                    <p className="text-white/50 text-sm">
-                      Get 1000 credits/month, HD exports, commercial use, and more.
-                    </p>
-                  </div>
-                  <Link
-                    href="/pricing"
-                    className="px-6 py-2.5 rounded-xl text-sm font-semibold text-white flex-shrink-0 inline-flex items-center gap-2"
-                    style={{ background: "linear-gradient(135deg, #860494 0%, #7873d0 100%)" }}
-                  >
-                    View Plans <ArrowRight className="w-4 h-4" />
-                  </Link>
+                <div>
+                  <h3 style={{ color: "white", fontWeight: 700, margin: "0 0 4px 0", fontSize: "16px" }}>Upgrade to Pro</h3>
+                  <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "14px", margin: 0 }}>
+                    Get 1000 credits/month, HD exports, commercial use, and more.
+                  </p>
                 </div>
+                <Link
+                  href="/pricing"
+                  style={{
+                    padding: "10px 24px",
+                    borderRadius: "12px",
+                    fontSize: "14px",
+                    fontWeight: 600,
+                    color: "white",
+                    background: "linear-gradient(135deg, #860494 0%, #7873d0 100%)",
+                    textDecoration: "none",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    flexShrink: 0
+                  }}
+                >
+                  View Plans <ArrowRight style={{ width: "16px", height: "16px" }} />
+                </Link>
               </motion.div>
             )}
           </div>

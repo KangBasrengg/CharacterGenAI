@@ -19,17 +19,40 @@ export async function POST(request: Request) {
     }
 
     // 2. Get user profile and check credits
-    const { data: profile, error: profileError } = await supabase
+    const { data: existingProfile, error: profileError } = await supabase
       .from("profiles")
       .select("credits")
       .eq("id", user.id)
       .single();
+    let profile = existingProfile;
 
     if (profileError || !profile) {
-      return NextResponse.json(
-        { error: "Profile not found" },
-        { status: 404 }
-      );
+      const { data: createdProfile, error: createProfileError } = await supabase
+        .from("profiles")
+        .upsert(
+          {
+            id: user.id,
+            name:
+              user.user_metadata?.full_name ||
+              user.user_metadata?.name ||
+              "User",
+            avatar_url: user.user_metadata?.avatar_url || null,
+            plan: "free",
+            credits: 10,
+          },
+          { onConflict: "id" }
+        )
+        .select("credits")
+        .single();
+
+      if (createProfileError || !createdProfile) {
+        return NextResponse.json(
+          { error: "Profile not found" },
+          { status: 404 }
+        );
+      }
+
+      profile = createdProfile;
     }
 
     if (profile.credits < 1) {

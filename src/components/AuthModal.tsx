@@ -2,52 +2,67 @@
 
 import { useState } from "react";
 import { useAuthStore } from "@/store";
+import { useUserStore } from "@/store";
 import { createClient } from "@/lib/supabase/client";
+import { login, register } from "@/app/actions/auth";
 import { Sparkles, X, Mail, Code, Loader2, Eye, EyeOff } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 
 export function AuthModal() {
   const { isOpen, mode, close, openLogin, openRegister } = useAuthStore();
+  const { setUser } = useUserStore();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("[AUTH] handleAuth started, mode:", mode);
     setLoading(true);
 
-    const supabase = createClient();
     const form = e.target as HTMLFormElement;
     const formData = new FormData(form);
-    const email = formData.get("email") as string;
-    const password = formData.get("password") as string;
 
     try {
       if (mode === "register") {
-        const name = formData.get("name") as string;
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: { full_name: name },
-          },
-        });
-        if (error) throw error;
-        toast.success("Account created! Check your email to verify.");
+        console.log("[AUTH] Calling register Server Action");
+        const result = await register(formData);
+        if (result.error) throw new Error(result.error);
+        
+        if (result.requireVerification) {
+          toast.success("Account created! Check your email to verify.");
+        } else {
+          toast.success("Account created! Welcome to CharGen AI.");
+        }
       } else {
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-        if (error) throw error;
+        console.log("[AUTH] Calling login Server Action");
+        const result = await login(formData);
+        if (result.error) throw new Error(result.error);
+        
+        console.log("[AUTH] Login success, showing toast");
         toast.success("Successfully logged in!");
       }
+
+      const profileRes = await fetch("/api/user");
+      if (profileRes.ok) {
+        const profile = await profileRes.json();
+        setUser({
+          id: profile.id,
+          email: profile.email,
+          name: profile.name,
+          plan: profile.plan,
+          credits: profile.credits,
+        });
+      }
+      
+      console.log("[AUTH] Calling close()");
       close();
-    } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Authentication failed"
-      );
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Authentication failed";
+      console.error("[AUTH] Error caught:", message);
+      toast.error(message);
     } finally {
+      console.log("[AUTH] Finally block, setLoading(false)");
       setLoading(false);
     }
   };

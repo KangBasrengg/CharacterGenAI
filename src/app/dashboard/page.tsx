@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useUserStore, useAuthStore } from "@/store";
-import { Activity, Clock, Zap, CreditCard, Loader2, Wand2, ArrowRight, TrendingUp, Calendar } from "lucide-react";
+import { Activity, Clock, Zap, CreditCard, Loader2, Wand2, ArrowRight, TrendingUp, Calendar, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 
@@ -20,6 +20,13 @@ interface DashboardData {
   }>;
 }
 
+const statColors = [
+  { color: "#facc15", bgFrom: "rgba(234,179,8,0.1)", bgTo: "rgba(245,158,11,0.05)" },
+  { color: "#c084fc", bgFrom: "rgba(168,85,247,0.1)", bgTo: "rgba(139,92,246,0.05)" },
+  { color: "#60a5fa", bgFrom: "rgba(59,130,246,0.1)", bgTo: "rgba(6,182,212,0.05)" },
+  { color: "#4ade80", bgFrom: "rgba(34,197,94,0.1)", bgTo: "rgba(16,185,129,0.05)" },
+];
+
 export default function DashboardPage() {
   const { user, isLoading: authLoading } = useUserStore();
   const { openLogin } = useAuthStore();
@@ -28,10 +35,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (authLoading) return;
-    if (!user) {
-      setLoading(false);
-      return;
-    }
+    if (!user) return;
     fetch("/api/dashboard")
       .then((res) => res.json())
       .then((d) => setData(d))
@@ -42,10 +46,10 @@ export default function DashboardPage() {
   // Auth still loading
   if (authLoading) {
     return (
-      <div className="pt-32 pb-20 flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <Loader2 className="w-8 h-8 text-purple-400 animate-spin mx-auto mb-4" />
-          <p className="text-white/40 text-sm">Loading...</p>
+      <div style={{ paddingTop: "160px", paddingBottom: "80px", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ textAlign: "center" }}>
+          <Loader2 style={{ width: "32px", height: "32px", color: "#c084fc", animation: "spin 1s linear infinite", margin: "0 auto 16px" }} />
+          <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "14px" }}>Loading...</p>
         </div>
       </div>
     );
@@ -54,25 +58,27 @@ export default function DashboardPage() {
   // Not logged in — show CTA
   if (!user) {
     return (
-      <div className="pt-32 pb-20 min-h-screen flex items-center justify-center px-4">
+      <div style={{ paddingTop: "160px", paddingBottom: "80px", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", paddingLeft: "16px", paddingRight: "16px" }}>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center max-w-md"
+          style={{ textAlign: "center", maxWidth: "448px" }}
         >
-          <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-purple-600/20 to-violet-500/20 flex items-center justify-center mx-auto mb-6 border border-purple-500/20">
-            <Activity className="w-10 h-10 text-purple-400" />
+          <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "6px 16px", borderRadius: "9999px", fontSize: "14px", color: "#c4b5fd", fontWeight: 500, marginBottom: "24px", background: "rgba(139,92,246,0.1)", border: "1px solid rgba(139,92,246,0.2)", backdropFilter: "blur(12px)" }}>
+            <Sparkles style={{ width: "16px", height: "16px" }} /> Workspace
           </div>
-          <h1 className="text-3xl font-bold text-white mb-3">Dashboard</h1>
-          <p className="text-white/50 mb-8 leading-relaxed">
+          <h1 style={{ fontSize: "clamp(2rem, 5vw, 3rem)", fontWeight: 900, color: "white", marginBottom: "16px", letterSpacing: "-0.02em", lineHeight: 1.1 }}>
+            Your <span className="gradient-text">Dashboard</span>
+          </h1>
+          <p style={{ fontSize: "18px", color: "rgba(255,255,255,0.5)", marginBottom: "32px", lineHeight: 1.7 }}>
             Sign in to view your generation stats, credits balance, and recent activity.
           </p>
           <button
             onClick={openLogin}
-            className="px-8 py-3.5 rounded-xl btn-gradient text-white font-semibold text-sm inline-flex items-center gap-2"
-            style={{ background: "linear-gradient(135deg, #860494 0%, #7873d0 100%)" }}
+            className="btn-gradient"
+            style={{ padding: "14px 32px", borderRadius: "12px", color: "white", fontWeight: 700, fontSize: "14px", display: "inline-flex", alignItems: "center", gap: "8px", cursor: "pointer", boxShadow: "0 8px 30px rgba(134,4,148,0.25)" }}
           >
-            Sign In to Continue <ArrowRight className="w-4 h-4" />
+            Sign In to Continue <ArrowRight style={{ width: "16px", height: "16px" }} />
           </button>
         </motion.div>
       </div>
@@ -82,10 +88,10 @@ export default function DashboardPage() {
   // Data loading
   if (loading) {
     return (
-      <div className="pt-32 pb-20 flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <Loader2 className="w-8 h-8 text-purple-400 animate-spin mx-auto mb-4" />
-          <p className="text-white/40 text-sm">Loading dashboard...</p>
+      <div style={{ paddingTop: "160px", paddingBottom: "80px", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ textAlign: "center" }}>
+          <Loader2 style={{ width: "32px", height: "32px", color: "#c084fc", animation: "spin 1s linear infinite", margin: "0 auto 16px" }} />
+          <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "14px" }}>Loading dashboard...</p>
         </div>
       </div>
     );
@@ -113,180 +119,221 @@ export default function DashboardPage() {
       label: "Available Credits",
       value: (data?.profile.credits ?? user.credits).toString(),
       icon: Zap,
-      color: "text-yellow-400",
-      bg: "from-yellow-500/10 to-amber-500/5",
+      colorIdx: 0,
     },
     {
       label: "Total Generations",
       value: (data?.stats.totalGenerations ?? 0).toString(),
       icon: TrendingUp,
-      color: "text-purple-400",
-      bg: "from-purple-500/10 to-violet-500/5",
+      colorIdx: 1,
     },
     {
       label: "Hours Saved",
       value: data?.stats.hoursSaved || "0h",
       icon: Clock,
-      color: "text-blue-400",
-      bg: "from-blue-500/10 to-cyan-500/5",
+      colorIdx: 2,
     },
     {
       label: "Current Plan",
       value: (data?.profile.plan || user.plan).toUpperCase(),
       icon: CreditCard,
-      color: "text-green-400",
-      bg: "from-green-500/10 to-emerald-500/5",
+      colorIdx: 3,
     },
   ];
 
   return (
-    <div style={{ paddingTop: "120px", paddingBottom: "80px", paddingLeft: "5%", paddingRight: "5%" }}>
-      {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="mb-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4"
-      >
-        <div>
-          <h1 className="text-3xl font-bold text-white mb-2">
-            Welcome back,{" "}
-            <span className="gradient-text">
-              {data?.profile.name.split(" ")[0] || user.name.split(" ")[0]}
-            </span>!
-          </h1>
-          <p className="text-white/50 flex items-center gap-2">
-            <Calendar className="w-4 h-4" />
-            Here&apos;s what&apos;s happening with your account today.
-          </p>
-        </div>
-        <Link
-          href="/generate"
-          className="px-6 py-3 rounded-xl btn-gradient text-white font-semibold text-sm inline-flex items-center gap-2"
-          style={{ background: "linear-gradient(135deg, #860494 0%, #7873d0 100%)" }}
+    <div style={{ paddingTop: "128px", paddingBottom: "80px", paddingLeft: "5%", paddingRight: "5%", minHeight: "100vh" }}>
+      <div style={{ maxWidth: "1440px", margin: "0 auto" }}>
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          style={{ marginBottom: "40px", display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-end", gap: "24px" }}
         >
-          <Wand2 className="w-4 h-4" /> Generate New Character
-        </Link>
-      </motion.div>
-
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-12">
-        {stats.map((stat, i) => (
-          <motion.div
-            key={i}
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.08 }}
-            className="p-6 rounded-2xl glass border border-white/10 flex items-start justify-between card-hover relative overflow-hidden"
+          <div>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "6px 16px", borderRadius: "9999px", fontSize: "14px", color: "#c4b5fd", fontWeight: 500, marginBottom: "16px", background: "rgba(10,0,20,0.6)", border: "1px solid rgba(139,92,246,0.3)", backdropFilter: "blur(20px)" }}>
+              <Activity style={{ width: "16px", height: "16px" }} /> Overview
+            </div>
+            <h1 style={{ fontSize: "clamp(2rem, 5vw, 3rem)", fontWeight: 900, color: "white", marginBottom: "12px", letterSpacing: "-0.02em", lineHeight: 1.1 }}>
+              Welcome back,{" "}
+              <span className="gradient-text">
+                {data?.profile.name.split(" ")[0] || user.name.split(" ")[0]}
+              </span>!
+            </h1>
+            <p style={{ fontSize: "15px", color: "rgba(255,255,255,0.5)", display: "flex", alignItems: "center", gap: "8px" }}>
+              <Calendar style={{ width: "20px", height: "20px", opacity: 0.7 }} />
+              Here&apos;s what&apos;s happening with your account today.
+            </p>
+          </div>
+          <Link
+            href="/generate"
+            className="btn-gradient"
+            style={{ padding: "12px 24px", borderRadius: "12px", color: "white", fontWeight: 700, fontSize: "14px", display: "inline-flex", alignItems: "center", gap: "8px", textDecoration: "none", boxShadow: "0 8px 30px rgba(134,4,148,0.25)" }}
           >
-            <div className={`absolute inset-0 bg-gradient-to-br ${stat.bg} pointer-events-none`} />
-            <div className="relative z-10">
-              <p className="text-sm font-medium text-white/50 mb-2">
-                {stat.label}
-              </p>
-              <p className="text-3xl font-bold text-white">{stat.value}</p>
-            </div>
-            <div
-              className={`relative z-10 w-11 h-11 rounded-xl bg-white/5 flex items-center justify-center border border-white/10 ${stat.color}`}
-            >
-              <stat.icon className="w-5 h-5" />
-            </div>
-          </motion.div>
-        ))}
-      </div>
+            <Wand2 style={{ width: "16px", height: "16px" }} /> Generate Character
+          </Link>
+        </motion.div>
 
-      {/* Recent Activity */}
-      <motion.div
-        initial={{ opacity: 0, y: 15 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.35 }}
-      >
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-white">Recent Activity</h2>
-          {data?.recentGenerations && data.recentGenerations.length > 0 && (
-            <Link href="/library" className="text-sm text-purple-400 hover:text-purple-300 transition-colors flex items-center gap-1">
-              View all <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
-          )}
+        {/* Stats Grid */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "20px", marginBottom: "40px" }}>
+          {stats.map((stat, i) => {
+            const c = statColors[stat.colorIdx];
+            return (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.08 }}
+                className="card-hover"
+                style={{
+                  minHeight: "132px",
+                  padding: "24px",
+                  display: "flex",
+                  alignItems: "flex-start",
+                  justifyContent: "space-between",
+                  position: "relative",
+                  overflow: "hidden",
+                  background: "rgba(10,0,20,0.6)",
+                  backdropFilter: "blur(20px)",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  borderRadius: "20px",
+                }}
+              >
+                {/* Subtle gradient bg */}
+                <div style={{ position: "absolute", inset: 0, background: `linear-gradient(135deg, ${c.bgFrom} 0%, ${c.bgTo} 100%)`, pointerEvents: "none" }} />
+                <div style={{ position: "relative", zIndex: 10 }}>
+                  <p style={{ fontSize: "14px", fontWeight: 500, color: "rgba(255,255,255,0.5)", marginBottom: "8px" }}>
+                    {stat.label}
+                  </p>
+                  <p style={{ fontSize: "30px", fontWeight: 900, color: "white" }}>{stat.value}</p>
+                </div>
+                <div
+                  style={{
+                    position: "relative",
+                    zIndex: 10,
+                    width: "44px",
+                    height: "44px",
+                    borderRadius: "12px",
+                    background: "rgba(255,255,255,0.05)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    border: "1px solid rgba(255,255,255,0.1)",
+                    color: c.color,
+                  }}
+                >
+                  <stat.icon style={{ width: "20px", height: "20px" }} />
+                </div>
+              </motion.div>
+            );
+          })}
         </div>
-        <div className="glass border border-white/10 rounded-2xl overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm text-white/70">
-              <thead className="bg-[#0a0a0a]/50 text-xs uppercase text-white/50 border-b border-white/10">
-                <tr>
-                  <th className="px-6 py-4 font-medium">Type</th>
-                  <th className="px-6 py-4 font-medium">Prompt</th>
-                  <th className="px-6 py-4 font-medium">Status</th>
-                  <th className="px-6 py-4 font-medium">Date</th>
-                  <th className="px-6 py-4 font-medium text-right">Cost</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/10">
-                {data?.recentGenerations &&
-                data.recentGenerations.length > 0 ? (
-                  data.recentGenerations.map((gen) => (
-                    <tr
-                      key={gen.id}
-                      className="hover:bg-white/5 transition-colors"
-                    >
-                      <td className="px-6 py-4 whitespace-nowrap font-medium text-white">
-                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium ${
-                          gen.type === "2d" 
-                            ? "bg-purple-500/10 text-purple-300 border border-purple-500/20" 
-                            : "bg-blue-500/10 text-blue-300 border border-blue-500/20"
-                        }`}>
-                          {gen.type === "2d" ? "2D" : "3D"}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 truncate max-w-xs">
-                        {gen.prompt}
-                      </td>
-                      <td className="px-6 py-4">
-                        <span
-                          className={`px-2.5 py-1 rounded-full text-xs font-medium border ${
-                            gen.status === "completed"
-                              ? "bg-green-500/10 text-green-400 border-green-500/20"
-                              : gen.status === "failed"
-                                ? "bg-red-500/10 text-red-400 border-red-500/20"
-                                : "bg-yellow-500/10 text-yellow-400 border-yellow-500/20"
-                          }`}
+
+        {/* Recent Activity */}
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.35 }}
+          style={{ paddingBottom: "40px" }}
+        >
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px" }}>
+            <h2 style={{ fontSize: "20px", fontWeight: 700, color: "white" }}>Recent Activity</h2>
+            {data?.recentGenerations && data.recentGenerations.length > 0 && (
+              <Link href="/library" style={{ fontSize: "14px", color: "#c084fc", textDecoration: "none", display: "flex", alignItems: "center", gap: "4px", transition: "color 0.2s" }}>
+                View all <ArrowRight style={{ width: "14px", height: "14px" }} />
+              </Link>
+            )}
+          </div>
+          <div
+            style={{
+              overflow: "hidden",
+              boxShadow: "0 25px 50px rgba(30,0,50,0.2)",
+              background: "rgba(10,0,20,0.6)",
+              backdropFilter: "blur(20px)",
+              border: "1px solid rgba(255,255,255,0.08)",
+              borderRadius: "24px",
+            }}
+          >
+            <div style={{ overflowX: "auto" }}>
+              <table style={{ width: "100%", textAlign: "left", fontSize: "14px", color: "rgba(255,255,255,0.7)", borderCollapse: "collapse" }}>
+                <thead>
+                  <tr style={{ background: "rgba(255,255,255,0.03)", borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
+                    <th style={{ padding: "16px 24px", fontWeight: 500, fontSize: "12px", textTransform: "uppercase", color: "rgba(255,255,255,0.45)", letterSpacing: "0.05em" }}>Type</th>
+                    <th style={{ padding: "16px 24px", fontWeight: 500, fontSize: "12px", textTransform: "uppercase", color: "rgba(255,255,255,0.45)", letterSpacing: "0.05em" }}>Prompt</th>
+                    <th style={{ padding: "16px 24px", fontWeight: 500, fontSize: "12px", textTransform: "uppercase", color: "rgba(255,255,255,0.45)", letterSpacing: "0.05em" }}>Status</th>
+                    <th style={{ padding: "16px 24px", fontWeight: 500, fontSize: "12px", textTransform: "uppercase", color: "rgba(255,255,255,0.45)", letterSpacing: "0.05em" }}>Date</th>
+                    <th style={{ padding: "16px 24px", fontWeight: 500, fontSize: "12px", textTransform: "uppercase", color: "rgba(255,255,255,0.45)", letterSpacing: "0.05em", textAlign: "right" }}>Cost</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data?.recentGenerations &&
+                  data.recentGenerations.length > 0 ? (
+                    data.recentGenerations.map((gen) => {
+                      const typeBadge = gen.type === "2d"
+                        ? { bg: "rgba(168,85,247,0.1)", color: "#c4b5fd", border: "1px solid rgba(168,85,247,0.2)" }
+                        : { bg: "rgba(59,130,246,0.1)", color: "#93c5fd", border: "1px solid rgba(59,130,246,0.2)" };
+
+                      const statusStyle = gen.status === "completed"
+                        ? { bg: "rgba(34,197,94,0.1)", color: "#4ade80", border: "1px solid rgba(34,197,94,0.2)" }
+                        : gen.status === "failed"
+                          ? { bg: "rgba(239,68,68,0.1)", color: "#f87171", border: "1px solid rgba(239,68,68,0.2)" }
+                          : { bg: "rgba(234,179,8,0.1)", color: "#facc15", border: "1px solid rgba(234,179,8,0.2)" };
+
+                      return (
+                        <tr
+                          key={gen.id}
+                          style={{ borderBottom: "1px solid rgba(255,255,255,0.06)", transition: "background 0.15s" }}
+                          onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.03)"; }}
+                          onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
                         >
-                          {gen.status.charAt(0).toUpperCase() +
-                            gen.status.slice(1)}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {formatDate(gen.created_at)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right">
-                        {gen.status === "failed"
-                          ? <span className="text-red-400">Refunded</span>
-                          : `${gen.credits_used} Credit${gen.credits_used !== 1 ? "s" : ""}`}
+                          <td style={{ padding: "16px 24px", whiteSpace: "nowrap", fontWeight: 500, color: "white" }}>
+                            <span style={{ display: "inline-flex", alignItems: "center", gap: "6px", padding: "4px 10px", borderRadius: "8px", fontSize: "12px", fontWeight: 500, background: typeBadge.bg, color: typeBadge.color, border: typeBadge.border }}>
+                              {gen.type === "2d" ? "2D" : "3D"}
+                            </span>
+                          </td>
+                          <td style={{ padding: "16px 24px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "300px" }}>
+                            {gen.prompt}
+                          </td>
+                          <td style={{ padding: "16px 24px" }}>
+                            <span style={{ padding: "4px 10px", borderRadius: "9999px", fontSize: "12px", fontWeight: 500, background: statusStyle.bg, color: statusStyle.color, border: statusStyle.border }}>
+                              {gen.status.charAt(0).toUpperCase() + gen.status.slice(1)}
+                            </span>
+                          </td>
+                          <td style={{ padding: "16px 24px", whiteSpace: "nowrap" }}>
+                            {formatDate(gen.created_at)}
+                          </td>
+                          <td style={{ padding: "16px 24px", whiteSpace: "nowrap", textAlign: "right" }}>
+                            {gen.status === "failed"
+                              ? <span style={{ color: "#f87171" }}>Refunded</span>
+                              : `${gen.credits_used} Credit${gen.credits_used !== 1 ? "s" : ""}`}
+                          </td>
+                        </tr>
+                      );
+                    })
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan={5}
+                        style={{ padding: "64px 24px", textAlign: "center" }}
+                      >
+                        <Wand2 style={{ width: "40px", height: "40px", color: "rgba(255,255,255,0.15)", margin: "0 auto 16px" }} />
+                        <p style={{ color: "rgba(255,255,255,0.4)", fontWeight: 500, marginBottom: "8px" }}>No generations yet</p>
+                        <p style={{ color: "rgba(255,255,255,0.25)", fontSize: "12px", marginBottom: "16px" }}>Start creating characters to see your activity here!</p>
+                        <Link
+                          href="/generate"
+                          style={{ display: "inline-flex", alignItems: "center", gap: "6px", color: "#c084fc", fontSize: "12px", fontWeight: 500, textDecoration: "none", transition: "color 0.2s" }}
+                        >
+                          Generate your first character <ArrowRight style={{ width: "12px", height: "12px" }} />
+                        </Link>
                       </td>
                     </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td
-                      colSpan={5}
-                      className="px-6 py-16 text-center"
-                    >
-                      <Wand2 className="w-10 h-10 text-white/15 mx-auto mb-4" />
-                      <p className="text-white/40 font-medium mb-2">No generations yet</p>
-                      <p className="text-white/25 text-xs mb-4">Start creating characters to see your activity here!</p>
-                      <Link
-                        href="/generate"
-                        className="inline-flex items-center gap-1.5 text-purple-400 hover:text-purple-300 text-xs font-medium transition-colors"
-                      >
-                        Generate your first character <ArrowRight className="w-3 h-3" />
-                      </Link>
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
-      </motion.div>
+        </motion.div>
+      </div>
     </div>
   );
 }
