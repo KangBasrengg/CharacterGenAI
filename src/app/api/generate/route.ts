@@ -2,8 +2,9 @@ import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 import { buildPrompt, NEGATIVE_PROMPT } from "@/lib/ai/prompts";
 import { generateCharacterImage } from "@/lib/ai/replicate";
-import { uploadImageToStorage } from "@/lib/supabase/storage";
 import type { CharacterStyle, Gender, PoseMood } from "@/lib/ai/prompts";
+
+const BUCKET_NAME = "generations";
 
 export async function POST(request: Request) {
   try {
@@ -111,23 +112,39 @@ export async function POST(request: Request) {
       .eq("id", user.id);
 
     try {
-      // 7. Call Replicate FLUX
-      const tempImageUrl = await generateCharacterImage(
+      // 7. Call Hugging Face FLUX to generate image (returns Buffer)
+      const { buffer, contentType } = await generateCharacterImage(
         fullPrompt,
         NEGATIVE_PROMPT
       );
 
-      // 8. Upload to Supabase Storage for persistence
-      let persistentUrl = tempImageUrl;
-      try {
-        persistentUrl = await uploadImageToStorage(
-          tempImageUrl,
-          user.id,
-          generation.id
-        );
-      } catch (storageError) {
-        // If storage upload fails, fall back to temporary URL
-        console.warn("Storage upload failed, using temporary URL:", storageError);
+      // 8. Upload buffer directly to Supabase Storage
+      const ext = contentType.includes("webp")
+        ? "webp"
+        : contentType.includes("jpeg") || contentType.includes("jpg")
+          ? "jpg"
+          : "png";
+
+      const filePath = `${user.id}/${generation.id}.${ext}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from(BUCKET_NAME)
+        .upload(filePath, buffer, {
+          contentType,
+          upsert: true,
+        });
+
+      let persistentUrl: string;
+
+      if (uploadError) {
+        console.warn("Storage upload failed:", uploadError);
+        // Fallback: return a base64 data URL
+        persistentUrl = `data:${contentType};base64,${buffer.toString("base64")}`;
+      } else {
+        const {
+          data: { publicUrl },
+        } = supabase.storage.from(BUCKET_NAME).getPublicUrl(filePath);
+        persistentUrl = publicUrl;
       }
 
       // 9. Update generation record with result
@@ -161,7 +178,7 @@ export async function POST(request: Request) {
         .eq("id", generation.id);
 
       return NextResponse.json(
-        { error: "AI generation failed. Credit has been refunded." },
+        { error: aiError instanceof Error ? aiError.message : "AI generation failed. Credit has been refunded." },
         { status: 500 }
       );
     }

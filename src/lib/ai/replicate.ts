@@ -8,6 +8,11 @@ const TRIPO_MODEL_VERSION = process.env.TRIPO_MODEL_VERSION || "v3.0-20250812";
 const TRIPO_POLL_INTERVAL_MS = Number(process.env.TRIPO_POLL_INTERVAL_MS || 5000);
 const TRIPO_MAX_POLLS = Number(process.env.TRIPO_MAX_POLLS || 60);
 
+const HF_API_BASE = "https://api-inference.huggingface.co/models";
+const HF_2D_MODEL = process.env.HF_2D_MODEL || "black-forest-labs/FLUX.1-schnell";
+const HF_MAX_RETRIES = 3;
+const HF_RETRY_DELAY_MS = 10000;
+
 export type Ai3DProvider = "tripo" | "huggingface";
 
 type GradioFile = {
@@ -109,22 +114,60 @@ async function tripoFetch<T>(
 }
 
 /**
- * Generate a 2D character concept art using Pollinations.ai (Free FLUX model).
- * No API key required!
+ * Generate a 2D character concept art using Hugging Face Inference API (FLUX model).
+ * Returns a Buffer of the generated image and the content type.
  */
 export async function generateCharacterImage(
   prompt: string,
-  negativePrompt: string
-): Promise<string> {
-  // Pollinations generates images on the fly via URL
-  const combinedPrompt = `${prompt}, ${negativePrompt || "masterpiece, high quality"}`;
-  const encodedPrompt = encodeURIComponent(combinedPrompt);
-  const seed = Math.floor(Math.random() * 1000000);
-  
-  // Using FLUX model via Pollinations
-  const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1024&height=1024&nologo=true&seed=${seed}&model=flux`;
-  
-  return imageUrl;
+  _negativePrompt: string
+): Promise<{ buffer: Buffer; contentType: string }> {
+  const apiKey = process.env.HUGGINGFACE_API_KEY;
+  if (!apiKey) {
+    throw new Error("HUGGINGFACE_API_KEY is not configured on the server.");
+  }
+
+  for (let attempt = 0; attempt < HF_MAX_RETRIES; attempt++) {
+    const res = await fetch(`${HF_API_BASE}/${HF_2D_MODEL}`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        inputs: prompt,
+        parameters: {
+          width: 1024,
+          height: 1024,
+        },
+      }),
+    });
+
+    // Model is loading — wait and retry
+    if (res.status === 503) {
+      const body = await res.json().catch(() => ({})) as { estimated_time?: number };
+      const waitTime = Math.min((body.estimated_time || 10) * 1000, HF_RETRY_DELAY_MS);
+      console.log(`HF model loading, waiting ${waitTime}ms before retry ${attempt + 1}...`);
+      await new Promise((r) => setTimeout(r, waitTime));
+      continue;
+    }
+
+    if (!res.ok) {
+      const errorBody = await res.text().catch(() => "");
+      throw new Error(`Hugging Face API error (${res.status}): ${errorBody}`);
+    }
+
+    const contentType = res.headers.get("content-type") || "image/png";
+    const arrayBuffer = await res.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    if (buffer.length < 1000) {
+      throw new Error("Hugging Face returned an unexpectedly small image. Please try again.");
+    }
+
+    return { buffer, contentType };
+  }
+
+  throw new Error("Hugging Face model is still loading. Please try again in a minute.");
 }
 
 /**
