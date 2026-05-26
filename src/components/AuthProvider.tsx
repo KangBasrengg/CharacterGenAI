@@ -33,12 +33,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     };
 
-    // Check for URL errors or code (from OAuth callbacks)
+    // Check for URL errors (from OAuth callbacks)
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
       let error = params.get("error");
       let errorDesc = params.get("error_description");
-      const code = params.get("code");
 
       // Also check hash for implicit flow OAuth errors
       if (window.location.hash) {
@@ -52,19 +51,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (error) {
         const msg = errorDesc || error;
         toast.error(decodeURIComponent(msg || "Authentication error"));
-        // Remove error from URL
         window.history.replaceState({}, document.title, window.location.pathname);
-      } else if (code) {
-        // Exchange code for session if we landed here directly with a code
-        supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
-          if (error) {
-            console.error("Error exchanging code:", error);
-            toast.error("Failed to verify login code.");
-          } else {
-            toast.success("Successfully logged in via Google!");
-          }
-          window.history.replaceState({}, document.title, window.location.pathname);
-        });
       }
     }
 
