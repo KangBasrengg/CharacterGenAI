@@ -5,6 +5,8 @@ import { uploadModelToStorage } from "@/lib/supabase/storage";
 
 const AI_3D_PROVIDERS = new Set<Ai3DProvider>(["tripo", "huggingface"]);
 
+export const maxDuration = 60; // Extend Vercel timeout to 60 seconds
+
 export async function POST(request: Request) {
   try {
     const supabase = await createClient();
